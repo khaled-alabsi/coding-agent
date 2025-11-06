@@ -1,5 +1,3 @@
-todo: split between legacy and ucc pattern 
-
 # CCB Portal - High-Level Architecture Overview
 
 ## Project Overview
