@@ -211,3 +211,4 @@ azure_agent/node_modules/*
 azure_agent/src/*
 */*.ts
 */*.json
+azure_agent/azure_agent/vite.config.ts
