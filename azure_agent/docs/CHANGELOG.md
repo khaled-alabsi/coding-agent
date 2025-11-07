@@ -2,6 +2,62 @@
 
 All notable changes to the Azure Coding Agent.
 
+## [1.2.0] - 2025-11-07
+
+### 🔧 Fixed - CSS Files and Import Consistency
+
+**The agent now creates proper CSS files and matches imports correctly!**
+
+#### What Changed:
+- 🎨 **CSS Files with Content**: Agent now creates CSS files with ACTUAL styling, not empty files
+- 🔗 **Import Consistency**: Ensures all imports match the actual file names created
+- ✅ **Verification Step**: Added checklist to verify all imports before marking complete
+- 📋 **CSS Template**: Provided minimum CSS structure example in instructions
+- 🚫 **No More Empty Files**: Explicitly forbidden creating empty CSS/style files
+
+#### The Problem We Fixed:
+```
+Before v1.2.0:
+❌ Created src/styles/main.css (EMPTY FILE)
+❌ Import says './styles/index.css' (WRONG NAME)
+❌ Project crashes with "Failed to resolve import"
+```
+
+**After v1.2.0:**
+```
+✅ Creates src/styles/main.css with FULL STYLING
+✅ Import says './styles/main.css' (MATCHES!)
+✅ Project runs immediately without errors
+```
+
+#### New Instructions Added:
+
+1. **File Consistency Rules**:
+   - If you create `src/styles/main.css`, import `'./styles/main.css'`
+   - Never import files that don't exist
+   - All file names must match imports exactly
+
+2. **CSS Content Requirements**:
+   - Must include CSS reset
+   - Must include CSS variables
+   - Must include component styles
+   - Must include responsive media queries
+   - NEVER create empty CSS files
+
+3. **Verification Checklist**:
+   - ✅ All imports reference existing files
+   - ✅ CSS files contain actual styling
+   - ✅ All file names match imports
+   - ✅ Project builds without errors
+
+#### Impact:
+- 🎯 **Zero Import Errors**: No more "Failed to resolve import" errors
+- 🎨 **Styled Projects**: All projects come with professional styling
+- ⚡ **Works First Time**: No manual fixing of imports needed
+- 📚 **Better Learning**: Developers see proper CSS structure examples
+
+---
+
 ## [1.1.0] - 2025-11-07
 
 ### ✨ Added - Complete Project Generation

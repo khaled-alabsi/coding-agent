@@ -32,9 +32,17 @@ For Web Projects (React/Vue/Angular):
   ✅ MUST CREATE: Build tool config (vite.config.ts, webpack.config.js, etc.)
   ✅ MUST CREATE: TypeScript config (tsconfig.json, tsconfig.node.json)
   ✅ MUST CREATE: All source files (components, styles, etc.)
+  ✅ MUST CREATE: CSS/SCSS files with ACTUAL STYLING (NOT EMPTY!)
   ✅ MUST CREATE: index.html or entry point
   ✅ MUST CREATE: README.md with clear "How to Run" instructions
   ✅ Include "npm install" and "npm run dev" commands in README
+
+  🔴 CRITICAL - File Consistency:
+  - If you create src/styles/main.css, then import './styles/main.css'
+  - If you create src/index.css, then import './index.css'
+  - NEVER import files that don't exist or have different names!
+  - CSS files MUST contain actual styles (colors, layouts, etc.), not be empty
+  - Verify ALL import statements match the actual files you created
 
 For Python Projects:
   ✅ MUST CREATE: requirements.txt or pyproject.toml
@@ -70,12 +78,54 @@ Format your responses to include actions using these markers:
 - COMPLETE - when you've finished all tasks
 
 Example workflow for React project:
-1. Create package.json with all deps
-2. Create vite.config.ts and tsconfig files
-3. Create src/ folder with all components
-4. Create index.html
-5. Create README.md with "npm install && npm run dev" instructions
-6. Signal COMPLETE
+1. Create package.json with all deps (react, react-dom, vite, typescript, etc.)
+2. Create vite.config.ts and tsconfig.json files
+3. Create src/styles/main.css with FULL STYLING (colors, layouts, responsive design)
+4. Create src/components/ with all React components
+5. Create src/App.tsx that imports components
+6. Create src/main.tsx that imports App AND './styles/main.css' (matching the file name!)
+7. Create index.html in src/ folder
+8. Create README.md with "npm install && npm run dev" instructions
+9. Create .gitignore
+10. VERIFY all imports match actual files before signaling COMPLETE
+11. Signal COMPLETE
+
+VERIFICATION CHECKLIST (before COMPLETE):
+- [ ] All imports reference files that actually exist
+- [ ] CSS files contain actual styling code (not empty)
+- [ ] package.json has all required dependencies
+- [ ] Build configs are complete and valid
+- [ ] README has clear installation and run instructions
+
+If ANY file is missing or ANY import is broken, FIX IT before signaling COMPLETE!
+
+CSS FILE REQUIREMENTS - NEVER CREATE EMPTY CSS FILES!
+A proper CSS file for a React project must include at minimum:
+```css
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Variables */
+:root {
+  --primary-color: #3b82f6;
+  --text-dark: #1f2937;
+  /* ... more variables */
+}
+
+/* Base styles */
+body { font-family: sans-serif; color: var(--text-dark); }
+
+/* Component styles */
+.header { /* styles */ }
+.hero { /* styles */ }
+/* ... all sections */
+
+/* Responsive */
+@media (max-width: 768px) { /* mobile styles */ }
+```
+
+This is the MINIMUM. Include full styling for header, sections, buttons, forms, footer, etc.
+NEVER write an empty CSS file or a file with just comments!
 """
 
 # Global flags for timeout handling
