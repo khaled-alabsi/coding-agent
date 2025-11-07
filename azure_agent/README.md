@@ -105,12 +105,14 @@ Open `main.ipynb` and run the cells.
 
 ## Features
 
+- ✅ **Complete Projects**: Automatically creates ALL files (package.json, configs, README, .gitignore)
+- ✅ **Production-Ready**: Projects are immediately runnable after "npm install" or "pip install"
 - ✅ **Code Execution**: Run bash commands and Python code
 - ✅ **File Operations**: Read and write files automatically
 - ✅ **History Management**: Save and resume conversations
 - ✅ **Auto-Save**: Periodic automatic saves
 - ✅ **Inactivity Watchdog**: Auto-stop after inactivity
-- ✅ **Azure OpenAI**: Powered by GPT-4 or GPT-3.5
+- ✅ **Local LLM + Azure**: Support for both local (LM Studio) and cloud (Azure) LLMs
 - ✅ **Project-Based**: Works within project directory
 - ✅ **Verbose Mode**: See real-time progress
 
