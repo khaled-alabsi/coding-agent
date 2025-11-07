@@ -1,20 +1,25 @@
 """LLM client wrapper supporting both Azure OpenAI and local LLM."""
 from openai import OpenAI, AzureOpenAI
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 from ..config import AgentConfig
+
+if TYPE_CHECKING:
+    from ..utils.logger import AgentLogger
 
 
 class LLMClient:
     """Unified client for Azure OpenAI and local LLM."""
 
-    def __init__(self, config: AgentConfig):
+    def __init__(self, config: AgentConfig, logger: Optional['AgentLogger'] = None):
         """
         Initialize LLM client.
 
         Args:
             config: Agent configuration
+            logger: Optional logger for tracking LLM interactions
         """
         self.config = config
+        self.logger = logger
         self.client = self._initialize_client()
 
     def _initialize_client(self):
@@ -64,7 +69,8 @@ class LLMClient:
         messages: List[Dict[str, str]],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        system_message: Optional[str] = None
+        system_message: Optional[str] = None,
+        agent_name: str = "unknown"
     ) -> str:
         """
         Send a chat completion request.
@@ -74,6 +80,7 @@ class LLMClient:
             temperature: Override default temperature
             max_tokens: Override default max tokens
             system_message: Optional system message to prepend
+            agent_name: Name of the agent making the request (for logging)
 
         Returns:
             Assistant's response content
@@ -88,6 +95,17 @@ class LLMClient:
         temperature = temperature if temperature is not None else self.config.temperature
         max_tokens = max_tokens if max_tokens is not None else self.config.max_tokens
 
+        # Log the request
+        request_id = None
+        if self.logger:
+            request_id = self.logger.log_llm_request(
+                agent_name=agent_name,
+                messages=messages,
+                system_message=system_message,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -95,7 +113,19 @@ class LLMClient:
                 temperature=temperature,
                 max_tokens=max_tokens
             )
-            return response.choices[0].message.content
+            response_content = response.choices[0].message.content
+
+            # Log the response
+            if self.logger and request_id:
+                tokens_used = getattr(response.usage, 'total_tokens', None) if hasattr(response, 'usage') else None
+                self.logger.log_llm_response(
+                    request_id=request_id,
+                    agent_name=agent_name,
+                    response=response_content,
+                    tokens_used=tokens_used
+                )
+
+            return response_content
         except Exception as e:
             raise RuntimeError(f"Error calling LLM: {str(e)}")
 
