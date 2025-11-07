@@ -216,3 +216,8 @@ azure_agent/azure_agent/vite.config.ts
 # Agent output directory - ignore all contents except .gitkeep
 azure_agent/output/*
 !azure_agent/output/.gitkeep
+
+# Agent workflow steps and logs - generated during runs
+azure_agent/workflow_steps_*
+azure_agent/agent_log_*.json
+azure_agent/agent_history.json

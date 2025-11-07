@@ -29,8 +29,16 @@ class AgentOrchestrator:
         self.config = config
 
         # Initialize logger
-        log_filename = f"agent_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        self.session_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_filename = f"agent_log_{self.session_timestamp}.json"
         self.logger = AgentLogger(config.project_dir / log_filename)
+
+        # Create workflow steps directory for clean outputs
+        self.steps_dir = config.project_dir / f"workflow_steps_{self.session_timestamp}"
+        self.steps_dir.mkdir(exist_ok=True)
+
+        # Create README for the steps directory
+        self._create_steps_readme()
 
         # Initialize core components with logger
         self.llm_client = LLMClient(config, logger=self.logger)
@@ -52,6 +60,7 @@ class AgentOrchestrator:
         self.validation_result = {}
 
         print(f"📝 Logging to: {self.logger.log_file}")
+        print(f"📂 Step results: {self.steps_dir}")
 
     def execute_workflow(
         self,
@@ -90,12 +99,16 @@ class AgentOrchestrator:
 
         self.current_prompt = user_prompt
 
+        # Save original user prompt
+        self._save_step_result(0, "user_prompt", user_prompt)
+
         # PHASE 1: Prompt Enhancement
         if not skip_prompt_enhancement:
             print("\n" + "=" * 70)
             print("PHASE 1: PROMPT ENHANCEMENT")
             print("=" * 70)
             self.enhanced_prompt = self.prompt_enhancer.enhance_prompt(user_prompt)
+            self._save_step_result(1, "prompt_enhanced", self.enhanced_prompt)
         else:
             print("\n⏭️  Skipping prompt enhancement")
             self.enhanced_prompt = user_prompt
@@ -105,6 +118,7 @@ class AgentOrchestrator:
         print("PHASE 2: PLANNING")
         print("=" * 70)
         self.plan = self.planner.create_plan(self.enhanced_prompt)
+        self._save_step_result(2, "plan", self.plan)
 
         # PHASE 3: Plan Enhancement
         if not skip_plan_enhancement:
@@ -112,6 +126,7 @@ class AgentOrchestrator:
             print("PHASE 3: PLAN ENHANCEMENT")
             print("=" * 70)
             self.enhanced_plan = self.plan_enhancer.enhance_plan(self.plan)
+            self._save_step_result(3, "plan_enhanced", self.enhanced_plan)
         else:
             print("\n⏭️  Skipping plan enhancement")
             self.enhanced_plan = self.plan
@@ -121,6 +136,7 @@ class AgentOrchestrator:
         print("PHASE 4: IMPLEMENTATION")
         print("=" * 70)
         self.implementation_result = self.coder.execute_plan(self.enhanced_plan)
+        self._save_step_result(4, "implementation_result", self.implementation_result)
 
         # PHASE 5: Validation and Iterative Fixing
         print("\n" + "=" * 70)
@@ -133,6 +149,13 @@ class AgentOrchestrator:
                 self.enhanced_plan,
                 self.implementation_result
             )
+
+            # Save validation result
+            validation_json = json.dumps(self.validation_result, indent=2, ensure_ascii=False)
+            if fix_iteration == 0:
+                self._save_step_result(5, "validation_result", validation_json, "json")
+            else:
+                self._save_step_result(5 + fix_iteration, f"validation_result_iteration_{fix_iteration}", validation_json, "json")
 
             # Display validation results
             self._display_validation_results(self.validation_result)
@@ -165,6 +188,9 @@ class AgentOrchestrator:
                 f"FIX THE FOLLOWING ISSUES:\n\n{fix_instructions}\n\n"
                 f"Original Plan for reference:\n{self.enhanced_plan}"
             )
+
+            # Save the fixed implementation result
+            self._save_step_result(4 + fix_iteration, f"implementation_result_fixed_{fix_iteration}", self.implementation_result)
 
         # PHASE 6: Summary
         print("\n" + "=" * 70)
@@ -211,7 +237,9 @@ class AgentOrchestrator:
         print(f"   LLM Requests: {log_summary['llm_requests']}")
         print(f"   Tool Calls: {log_summary['tool_calls']}")
         print(f"   Duration: {log_summary['duration']:.1f}s")
-        print(f"   Log File: {self.logger.log_file}")
+        print(f"\n📂 Files Generated:")
+        print(f"   Workflow Steps: {self.steps_dir}")
+        print(f"   Detailed Log: {self.logger.log_file}")
 
         return workflow_results
 
@@ -286,6 +314,67 @@ class AgentOrchestrator:
             print(f"\n💾 Workflow results saved to: {results_file}")
         except Exception as e:
             print(f"\n⚠️  Could not save workflow results: {e}")
+
+    def _create_steps_readme(self):
+        """Create a README in the steps directory explaining the files."""
+        readme_content = """# Workflow Step Results
+
+This directory contains the clean output from each agent in the multi-agent workflow.
+These files make it easy to review what each agent produced without parsing through the detailed JSON log.
+
+## Files
+
+- **0_user_prompt.md** - Original user prompt
+- **1_prompt_enhanced.md** - Enhanced prompt (from Prompt Enhancer Agent)
+- **2_plan.md** - Execution plan (from Planner Agent)
+- **3_plan_enhanced.md** - Enhanced and validated plan (from Plan Enhancer Agent)
+- **4_implementation_result.md** - Implementation output (from Coder Agent)
+- **5_validation_result.json** - Validation results (from Result Validator Agent)
+
+If fix iterations occurred:
+- **4_implementation_result_fixed_N.md** - Fixed implementation (iteration N)
+- **5_validation_result_iteration_N.json** - Validation after fix (iteration N)
+
+## Usage
+
+1. **Review the workflow progression** - Read files in order (0 → 1 → 2 → 3 → 4 → 5)
+2. **Check validation** - Look at validation_result.json for quality score and issues
+3. **See fixes applied** - If fixes were needed, compare original vs fixed implementations
+
+## Related Files
+
+- **agent_log_{timestamp}.json** - Detailed log with all LLM requests/responses and tool calls
+- **workflow_results.json** - Complete workflow summary with all results
+
+## Notes
+
+- Step results contain CLEAN output (thinking tags removed)
+- Full LLM responses WITH thinking tags are in the detailed log file
+- This separation makes it easier to review the actual deliverables vs the reasoning process
+"""
+        try:
+            readme_path = self.steps_dir / "README.md"
+            readme_path.write_text(readme_content, encoding='utf-8')
+        except Exception as e:
+            print(f"⚠️  Could not create steps README: {e}")
+
+    def _save_step_result(self, step_number: int, step_name: str, content: str, extension: str = "md"):
+        """
+        Save a workflow step's output to a file for easy reading.
+
+        Args:
+            step_number: Step number (1, 2, 3, etc.)
+            step_name: Name of the step (e.g., "prompt_enhanced")
+            content: Content to save
+            extension: File extension (default: md)
+        """
+        try:
+            filename = f"{step_number}_{step_name}.{extension}"
+            filepath = self.steps_dir / filename
+            filepath.write_text(content, encoding='utf-8')
+            print(f"   💾 Saved to: {filename}")
+        except Exception as e:
+            print(f"   ⚠️  Could not save step result: {e}")
 
     def load_prompt_from_file(self, filepath: Path) -> str:
         """
