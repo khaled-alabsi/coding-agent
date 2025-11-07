@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from ..config import AgentConfig
 from ..core import LLMClient
+from ..utils import strip_thinking_tags
 
 
 class BaseAgent(ABC):
@@ -60,15 +61,19 @@ class BaseAgent(ABC):
                 agent_name=self.agent_name  # Pass agent name for logging
             )
 
+            # Strip thinking tags from response before storing/returning
+            # (Full response with thinking is already logged in llm_client)
+            cleaned_response = strip_thinking_tags(response)
+
             self.messages.append({
                 "role": "assistant",
-                "content": response
+                "content": cleaned_response
             })
 
             if display:
-                print(f"\n{response}\n")
+                print(f"\n{cleaned_response}\n")
 
-            return response
+            return cleaned_response
 
         except Exception as e:
             error_msg = f"Error in {self.agent_name}: {str(e)}"
