@@ -1,0 +1,12 @@
+# Azure OpenAI SDK
+openai>=1.0.0
+
+# Python standard library enhancements
+python-dotenv>=1.0.0
+
+# For Jupyter notebook support (optional)
+ipykernel>=6.25.0
+jupyter>=1.0.0
+
+# Additional utilities
+pathlib2>=2.3.7; python_version < '3.4'

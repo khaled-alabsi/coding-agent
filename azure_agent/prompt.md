@@ -1,0 +1,2 @@
+# Project: very nice looking personal website
+Create a personal website that is visually appealing, user-friendly, and showcases my portfolio, blog, and contact information. The design should be modern and responsive, ensuring it looks great on both desktop and mobile devices. Include sections for an about me, projects, blog posts, and a contact form. Use a color scheme that reflects my personality and style. Implement smooth navigation and interactive elements to enhance user experience.
