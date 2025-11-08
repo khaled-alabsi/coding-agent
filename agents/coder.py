@@ -9,6 +9,8 @@ from utils import load_prompt
 from tools import ToolRunner
 import textwrap
 
+COMPLETION_TOKEN = "COMPLETE999"
+
 
 class CoderAgent(BaseAgent):
     """Executes code based on the plan."""
@@ -85,7 +87,7 @@ class CoderAgent(BaseAgent):
             print(f"\n🤖 Log done")
 
             # Check if complete
-            if "COMPLETE" in last_response:
+            if self._has_completion_token(last_response):
                 print(f"\n✅ Coder completed implementation!")
                 return last_response
 
@@ -150,12 +152,12 @@ class CoderAgent(BaseAgent):
                         "iteration": iteration,
                         "max_iterations": max_iterations,
                         "response_preview": last_response[:200],
-                        "has_complete": "COMPLETE" in last_response
+                        "has_complete": self._has_completion_token(last_response)
                     },
                     message=f"Iteration {iteration}/{max_iterations}"
                 )
 
-            if "COMPLETE" in last_response:
+            if self._has_completion_token(last_response):
                 print(f"\n✅ Coder completed implementation!")
                 # Log to file: completion detected
                 if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
@@ -351,3 +353,7 @@ class CoderAgent(BaseAgent):
         return results_message
 
     # (No coder-specific tool snapshot helpers; handled by ToolRunner)
+
+    def _has_completion_token(self, text: str) -> bool:
+        """Return True if the special completion token appears on its own line."""
+        return bool(re.search(rf"^\s*{re.escape(COMPLETION_TOKEN)}\s*$", text, re.MULTILINE))

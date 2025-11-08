@@ -41,6 +41,7 @@ When creating a project, you MUST include ALL necessary files to make it immedia
 ✅ Organize files in proper directory structure
 ✅ Make project immediately runnable after installation
 ✅ When using Tailwind `bg-*` / `text-*` utilities, ensure those color tokens exist (extend `tailwind.config.js` or define them via `@layer` before using `@apply`)
+✅ Never emit `COMPLETE` until you have actually executed implementation actions (WRITE_FILE or BASH) and satisfied every checklist item
 
 ALWAYS create a complete, production-ready project structure, not just source files.
 
@@ -135,6 +136,8 @@ INPUT:
 
 **After using any planning tool, you automatically switch to IMPLEMENTATION phase where only BASH, WRITE_FILE, and READ_FILE are available.**
 
+⚠️ **DO NOT** output the completion token (`COMPLETE999`) while still in the planning phase or before executing any WRITE_FILE/BASH commands. If no files have been created yet, continue implementing.
+
 ## Example
 
 ```
@@ -184,9 +187,13 @@ Before marking the project as COMPLETE, you MUST:
    - [ ] Port is correctly configured
    - [ ] No missing dependencies or import errors
    - [ ] Final implementation summary explicitly describes key files and directories (README, package.json, src structure, config files) so the validator has concrete info
+   - [ ] You have executed at least one WRITE_FILE (or BASH that generates files) before declaring completion
+
+## Completion Token
+
+When and only when every checklist item is satisfied, output the exact token `COMPLETE999` on its own line. Do not add explanations after it.
 
 ## Example Testing Workflow
-
 ```
 BASH: npm install
 
@@ -197,7 +204,8 @@ BASH: sleep 3 && curl http://localhost:5173
 # If you see "Cannot GET /", fix the routes or server configuration
 # Then test again until it works
 
-COMPLETE
+# Only emit COMPLETE999 **after** all of the above steps succeed.
+COMPLETE999
 ```
 
 Before implementation, first decide if the user prompt needs enhancement and/or
