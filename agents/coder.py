@@ -83,6 +83,7 @@ class CoderAgent(BaseAgent):
             print(f"\n{'='*70}")
             print(f"Iteration {iteration}/{max_iterations}")
             print(f"{'='*70}")
+            print(f"\n🤖 Log start")
             print(f"\n🤖 Coder: {last_response[:2500]}...")
             print(f"\n🤖 Log done")
 
