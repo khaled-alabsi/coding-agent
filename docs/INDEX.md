@@ -47,31 +47,35 @@ This is your entry point for understanding and working with the multi-agent codi
    - Tool invocation flow
    - WRITE_FILE/BASH/READ_FILE lifecycle
    - Logging and artifacts
+6. **[CODER_FILE_CREATION_TUTORIAL.md](CODER_FILE_CREATION_TUTORIAL.md)** - Step-by-step file creation example
+   - Sample LLM response & parsed actions
+   - How files are written one at a time
+   - Best practices & enhancement ideas
 
-6. **[TRUNCATION_FIX_PLAN.md](TRUNCATION_FIX_PLAN.md)** - Truncation Detection & Fix
+7. **[TRUNCATION_FIX_PLAN.md](TRUNCATION_FIX_PLAN.md)** - Truncation Detection & Fix
    - Dynamic detection strategy
    - Auto-fix implementation plan
    - Testing approach
 
-7. **[TRUNCATION_IMPLEMENTATION_SUMMARY.md](TRUNCATION_IMPLEMENTATION_SUMMARY.md)** - Implementation Details
+8. **[TRUNCATION_IMPLEMENTATION_SUMMARY.md](TRUNCATION_IMPLEMENTATION_SUMMARY.md)** - Implementation Details
    - What was implemented
    - How to use it
    - Configuration options
 
 ### Guides
 
-8. **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Development Guide
+9. **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Development Guide
    - Setup instructions
    - Contributing guidelines
    - Testing procedures
    - Code style
 
-9. **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration Reference
+10. **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration Reference
    - All settings explained
    - Environment variables
    - Defaults and overrides
 
-10. **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Troubleshooting
+11. **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Troubleshooting
    - Common issues
    - Error messages
    - Solutions
