@@ -38,9 +38,9 @@ When creating a project, you MUST include ALL necessary files to make it immedia
 
 ✅ README MUST include: installation steps, how to run, how to test
 ✅ Create .gitignore file
-✅ Create `NO_GO.md` at the project root listing the NO-GO rules (see below)
 ✅ Organize files in proper directory structure
 ✅ Make project immediately runnable after installation
+✅ When using Tailwind `bg-*` / `text-*` utilities, ensure those color tokens exist (extend `tailwind.config.js` or define them via `@layer` before using `@apply`)
 
 ALWAYS create a complete, production-ready project structure, not just source files.
 
@@ -164,11 +164,13 @@ Before marking the project as COMPLETE, you MUST:
    - [ ] CSS files contain actual styling code (not empty!)
    - [ ] package.json has all required dependencies
    - [ ] Build configs are complete and valid
+   - [ ] Root `index.html` exists (for web apps) with `<div id="root"></div>` and `<script type="module" src="/src/main.tsx">`
    - [ ] `NO_GO.md` created at project root with the NO-GO rules:
          - Never generate pictures/images (png, jpg, svg, etc.)
          - No inline SVG or base64 images
          - Use textual placeholders or TODOs for imagery
    - [ ] README has clear installation and run instructions
+   - [ ] Tailwind classes used in CSS (`@apply`) all exist (custom colors declared in `tailwind.config.js` or defined within `@layer`)
 
 2. **Install dependencies and test**
    - [ ] Run `npm install` (for Node.js projects) or `pip install -r requirements.txt` (for Python projects)
