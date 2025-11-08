@@ -144,6 +144,8 @@ class AgentOrchestrator:
         print("=" * 70)
 
         fix_iteration = 0
+        iteration_history = []  # Track all iterations for fail log
+
         while fix_iteration < max_fix_iterations:
             self.validation_result = self.validator.validate_results(
                 self.enhanced_plan,
@@ -160,15 +162,30 @@ class AgentOrchestrator:
             # Display validation results
             self._display_validation_results(self.validation_result)
 
+            # Track this iteration
+            iteration_data = {
+                "iteration": fix_iteration,
+                "validation_result": self.validation_result.copy(),
+                "implementation_result": self.implementation_result,
+                "timestamp": datetime.now().isoformat()
+            }
+
             # Check if fixes are needed
             if not self.validation_result.get("requires_fix", False):
                 print("\n✅ Validation passed! No fixes needed.")
+                iteration_data["outcome"] = "PASSED"
+                iteration_history.append(iteration_data)
                 break
 
             fix_iteration += 1
             if fix_iteration >= max_fix_iterations:
                 print(f"\n⚠️  Reached maximum fix iterations ({max_fix_iterations})")
                 print("Some issues may remain. Manual review recommended.")
+
+                # Save comprehensive fail log
+                iteration_data["outcome"] = "MAX_RETRIES_REACHED"
+                iteration_history.append(iteration_data)
+                self._save_fail_log(iteration_history, user_prompt, max_fix_iterations)
                 break
 
             # Generate fix instructions
@@ -176,6 +193,10 @@ class AgentOrchestrator:
             fix_instructions = self.validator.generate_fix_instructions(
                 self.validation_result
             )
+
+            iteration_data["outcome"] = "REQUIRES_FIX"
+            iteration_data["fix_instructions"] = fix_instructions
+            iteration_history.append(iteration_data)
 
             # Re-execute with fixes
             print("\n" + "=" * 70)
@@ -375,6 +396,265 @@ If fix iterations occurred:
             print(f"   💾 Saved to: {filename}")
         except Exception as e:
             print(f"   ⚠️  Could not save step result: {e}")
+
+    def _save_fail_log(self, iteration_history: list, user_prompt: str, max_iterations: int):
+        """
+        Save comprehensive fail log when max retries is reached.
+
+        Args:
+            iteration_history: List of all iteration data
+            user_prompt: Original user prompt
+            max_iterations: Maximum iterations allowed
+        """
+        try:
+            # Create fail log directory
+            fail_log_dir = self.config.project_dir / "fail_logs"
+            fail_log_dir.mkdir(exist_ok=True)
+
+            # Generate fail log filename
+            fail_log_file = fail_log_dir / f"fail_log_{self.session_timestamp}.md"
+
+            # Build comprehensive fail log
+            fail_log = self._build_fail_log_content(iteration_history, user_prompt, max_iterations)
+
+            # Save fail log
+            fail_log_file.write_text(fail_log, encoding='utf-8')
+
+            # Also save as JSON for programmatic analysis
+            fail_log_json = fail_log_dir / f"fail_log_{self.session_timestamp}.json"
+            fail_data = {
+                "timestamp": self.session_timestamp,
+                "user_prompt": user_prompt,
+                "max_iterations": max_iterations,
+                "total_attempts": len(iteration_history),
+                "iteration_history": iteration_history,
+                "final_validation": iteration_history[-1]["validation_result"] if iteration_history else {},
+                "output_directory": str(self.file_ops.working_directory),
+                "workflow_steps_dir": str(self.steps_dir),
+                "agent_log": str(self.logger.log_file)
+            }
+            with open(fail_log_json, 'w', encoding='utf-8') as f:
+                json.dump(fail_data, f, indent=2, ensure_ascii=False)
+
+            print(f"\n📋 FAIL LOG SAVED")
+            print(f"   Readable: {fail_log_file}")
+            print(f"   JSON: {fail_log_json}")
+
+        except Exception as e:
+            print(f"\n⚠️  Could not save fail log: {e}")
+
+    def _build_fail_log_content(self, iteration_history: list, user_prompt: str, max_iterations: int) -> str:
+        """
+        Build the fail log content in markdown format.
+
+        Args:
+            iteration_history: List of all iteration data
+            user_prompt: Original user prompt
+            max_iterations: Maximum iterations allowed
+
+        Returns:
+            Fail log content as markdown string
+        """
+        content = f"""# CODING FAILURE REPORT
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Session: {self.session_timestamp}
+
+## SUMMARY
+
+**Status**: ❌ FAILED - Reached maximum retry limit ({max_iterations} iterations)
+**Total Attempts**: {len(iteration_history)}
+**Output Directory**: {self.file_ops.working_directory}
+**Workflow Steps**: {self.steps_dir}
+**Agent Log**: {self.logger.log_file}
+
+---
+
+## ORIGINAL REQUEST
+
+```
+{user_prompt}
+```
+
+---
+
+## ITERATION HISTORY
+
+"""
+
+        # Add each iteration
+        for iteration in iteration_history:
+            content += f"""### Iteration {iteration['iteration']} - {iteration['outcome']}
+
+**Timestamp**: {iteration['timestamp']}
+
+#### Validation Results
+
+"""
+            val_result = iteration['validation_result']
+            content += f"- **Status**: {val_result.get('status', 'UNKNOWN')}\n"
+            content += f"- **Score**: {val_result.get('score', 0)}/100\n"
+            content += f"- **Requires Fix**: {val_result.get('requires_fix', False)}\n\n"
+
+            # Failed checks
+            failed = val_result.get('failed_checks', [])
+            if failed:
+                content += f"**❌ Failed Checks ({len(failed)})**:\n"
+                for check in failed:
+                    content += f"- {check}\n"
+                content += "\n"
+
+            # Critical issues
+            critical = val_result.get('critical_issues', [])
+            if critical:
+                content += f"**🔴 Critical Issues ({len(critical)})**:\n"
+                for issue in critical:
+                    content += f"- {issue}\n"
+                content += "\n"
+
+            # Passed checks
+            passed = val_result.get('passed_checks', [])
+            if passed:
+                content += f"**✅ Passed Checks ({len(passed)})**:\n"
+                for check in passed:
+                    content += f"- {check}\n"
+                content += "\n"
+
+            # Suggestions
+            suggestions = val_result.get('suggestions', [])
+            if suggestions:
+                content += f"**💡 Suggestions ({len(suggestions)})**:\n"
+                for suggestion in suggestions:
+                    content += f"- {suggestion}\n"
+                content += "\n"
+
+            # Fix instructions if generated
+            if 'fix_instructions' in iteration:
+                content += f"""#### Fix Instructions Given
+
+```
+{iteration['fix_instructions']}
+```
+
+"""
+
+            # Implementation result preview
+            impl_preview = iteration['implementation_result'][:500]
+            content += f"""#### Implementation Result (Preview)
+
+```
+{impl_preview}...
+```
+
+"""
+
+            content += "---\n\n"
+
+        # Add final analysis section
+        final_validation = iteration_history[-1]['validation_result'] if iteration_history else {}
+        content += f"""## FINAL STATE ANALYSIS
+
+### Why It Failed
+
+The coder agent could not resolve all validation issues within {max_iterations} iterations.
+
+**Final Score**: {final_validation.get('score', 0)}/100
+
+**Remaining Issues**:
+"""
+
+        # List all final issues
+        final_failed = final_validation.get('failed_checks', [])
+        final_critical = final_validation.get('critical_issues', [])
+
+        if final_critical:
+            content += "\n**Critical Issues**:\n"
+            for issue in final_critical:
+                content += f"- {issue}\n"
+
+        if final_failed:
+            content += "\n**Failed Validation Checks**:\n"
+            for check in final_failed:
+                content += f"- {check}\n"
+
+        content += f"""
+
+---
+
+## NEXT STEPS TO FIX
+
+1. **Review the iteration history** above to see what the coder tried
+2. **Check the output files** in `{self.file_ops.working_directory}`
+3. **Look at the final validation** to understand remaining issues
+4. **Manual fixes**:
+   - Review generated code files
+   - Fix critical issues manually
+   - Test the application
+
+5. **Configuration tuning** (if needed):
+   - Increase `max_fix_iterations` (current: {max_iterations})
+   - Check `max_tokens` setting - coder responses may be truncated
+   - Review `context_window` - context may be too small
+
+6. **Prompt improvements**:
+   - Make requirements more specific
+   - Break down complex tasks into smaller parts
+   - Provide clearer success criteria
+
+---
+
+## FILES TO REVIEW
+
+### Generated Code
+- Location: `{self.file_ops.working_directory}`
+- Check files for syntax errors, missing imports, incomplete implementations
+
+### Workflow Steps
+- Location: `{self.steps_dir}`
+- Review each step's output to understand the workflow
+
+### Detailed Logs
+- Agent Log: `{self.logger.log_file}`
+- Contains all LLM requests/responses and tool calls
+
+---
+
+## TROUBLESHOOTING
+
+### Common Causes of Failure
+
+1. **Response Truncation**: Coder's output was cut off due to `max_tokens` limit
+   - Solution: Increase `max_tokens` in config (current: {self.config.max_tokens})
+
+2. **Context Window Exceeded**: Too much context for the LLM
+   - Solution: Increase `context_window` in config (current: {self.config.context_window})
+
+3. **Ambiguous Requirements**: Prompt wasn't specific enough
+   - Solution: Enhance the original prompt with more details
+
+4. **Complex Task**: Task too large for single workflow
+   - Solution: Break into smaller sub-tasks
+
+5. **Model Limitations**: Local model not capable enough
+   - Solution: Try a larger model or Azure OpenAI
+
+### Analysis Tools
+
+Use the context analyzer to check for truncation:
+
+```python
+from utils.context_analyzer import ContextAnalyzer
+
+analyzer = ContextAnalyzer()
+stats = analyzer.analyze_log_file('{self.logger.log_file}')
+analyzer.print_analysis(stats)
+```
+
+---
+
+Generated by Azure Code Agent Multi-Agent System
+"""
+
+        return content
 
     def load_prompt_from_file(self, filepath: Path) -> str:
         """

@@ -29,15 +29,15 @@ class AgentConfig:
 
     # Generation parameters
     context_window: int = 262144
-    max_tokens: int = 65500
+    max_tokens: int = 35500
     temperature: float = 0.7
 
     # Agent settings
     max_iterations: int = 50
-    max_retry_attempts: int = 3
+    max_retry_attempts: int = 10
 
     # Timeouts
-    command_timeout: int = 300  # 5 minutes
+    command_timeout: int = 300*2  # 5*2 minutes
     inactivity_timeout: Optional[int] = None
     auto_save_interval: int = 30
 
