@@ -63,7 +63,7 @@ Start implementing now. Create all files as specified in the plan.""",
             display=False
         )
 
-        # Run execution loop
+        # STEP 2: Run execution loop (iterate until COMPLETE or max iterations)
         iteration = 0
         max_iterations = self.config.max_iterations
 
@@ -194,7 +194,7 @@ Start implementing now. Create all files as specified in the plan.""",
                 message=f"Starting to parse actions from response ({len(response)} chars)"
             )
 
-        # Parse BASH commands
+        # STEP 1A: Parse BASH commands
         bash_pattern = r'BASH:\s*(.+?)(?=\n(?:BASH:|WRITE_FILE:|READ_FILE:|COMPLETE|$))'
         bash_commands = re.findall(bash_pattern, response, re.DOTALL)
 
@@ -208,11 +208,11 @@ Start implementing now. Create all files as specified in the plan.""",
                 "result": result
             })
             if result["stdout"]:
-                print(f"📤 Output: {result['stdout'][:500]}")
+                print(f"📤 stdout Output: {result['stdout'][:500]}")
             if result["stderr"]:
                 print(f"⚠️  Error: {result['stderr'][:500]}")
 
-        # Parse WRITE_FILE commands (robust to missing closing code fences)
+        # STEP 1B: Parse WRITE_FILE commands (robust to missing closing code fences)
         fenced_pattern = r'WRITE_FILE:\s*(.+?)\n```(?:\w+)?\n([\s\S]*?)```'
         write_commands = re.findall(fenced_pattern, response, re.DOTALL)
 
@@ -248,7 +248,7 @@ Start implementing now. Create all files as specified in the plan.""",
             })
             print(f"✅ {result['message']}")
 
-        # Parse READ_FILE commands
+        # STEP 1C: Parse READ_FILE commands
         read_pattern = r'READ_FILE:\s*(.+?)(?=\n|$)'
         read_commands = re.findall(read_pattern, response)
 
@@ -266,7 +266,7 @@ Start implementing now. Create all files as specified in the plan.""",
             else:
                 print(f"❌ {result['message']}")
 
-        # Parse and execute TOOL invocations via ToolRunner
+        # STEP 1D: Parse and execute TOOL invocations via ToolRunner
         tool_results = self._tool_runner.run_calls(response)
         for r in tool_results:
             # Mirror logs for consistency with previous behavior

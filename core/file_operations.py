@@ -31,7 +31,7 @@ class FileOperations:
 
     def execute_bash_command(self, command: str, agent_name: str = "unknown") -> Dict[str, Any]:
         """
-        Execute a bash command.
+        Step 1: Execute a bash command requested by an agent.
 
         Args:
             command: Command to execute
@@ -40,7 +40,7 @@ class FileOperations:
         Returns:
             Dict with stdout, stderr, returncode, and success flag
         """
-        # Log the tool call
+        # Step 1a: Log the tool call (so it appears in agent_log)
         call_id = None
         if self.logger:
             call_id = self.logger.log_tool_call(
@@ -50,6 +50,7 @@ class FileOperations:
             )
 
         try:
+            # Step 1b: Actually execute the shell command within the working directory
             result = subprocess.run(
                 command,
                 shell=True,
@@ -65,7 +66,7 @@ class FileOperations:
                 "success": result.returncode == 0
             }
 
-            # Log the result
+            # Step 1c: Log the result with context (bash -> success/failure)
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -84,7 +85,7 @@ class FileOperations:
                 "success": False
             }
 
-            # Log the error
+            # Step 1d: Log timeout
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -104,7 +105,7 @@ class FileOperations:
                 "success": False
             }
 
-            # Log the error
+            # Step 1e: Log unexpected error
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -119,7 +120,7 @@ class FileOperations:
 
     def write_file(self, filepath: str, content: str, agent_name: str = "unknown") -> Dict[str, Any]:
         """
-        Write content to a file.
+        Step 2: Write content to a file.
 
         Args:
             filepath: Path to file (relative to working directory)
@@ -129,7 +130,7 @@ class FileOperations:
         Returns:
             Dict with success flag and message
         """
-        # Log the tool call
+        # Step 2a: Log the tool call (captures filepath and content length)
         call_id = None
         if self.logger:
             call_id = self.logger.log_tool_call(
@@ -139,6 +140,7 @@ class FileOperations:
             )
 
         try:
+            # Step 2b: Resolve file path relative to working directory
             file_path = Path(filepath)
             if not file_path.is_absolute():
                 file_path = self.working_directory / file_path
@@ -151,7 +153,7 @@ class FileOperations:
                 "message": f"Successfully wrote to {file_path}"
             }
 
-            # Log the result
+            # Step 2c: Log success
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -168,7 +170,7 @@ class FileOperations:
                 "message": f"Error writing file: {str(e)}"
             }
 
-            # Log the error
+            # Step 2d: Log failure (I/O error, permission issue, etc.)
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -183,7 +185,7 @@ class FileOperations:
 
     def read_file(self, filepath: str, agent_name: str = "unknown") -> Dict[str, Any]:
         """
-        Read content from a file.
+        Step 3: Read content from a file.
 
         Args:
             filepath: Path to file (relative to working directory)
@@ -192,7 +194,7 @@ class FileOperations:
         Returns:
             Dict with success flag, content, and message
         """
-        # Log the tool call
+        # Step 3a: Log read request
         call_id = None
         if self.logger:
             call_id = self.logger.log_tool_call(
@@ -202,6 +204,7 @@ class FileOperations:
             )
 
         try:
+            # Step 3b: Resolve path and read file contents
             file_path = Path(filepath)
             if not file_path.is_absolute():
                 file_path = self.working_directory / file_path
@@ -213,7 +216,7 @@ class FileOperations:
                     "message": f"File not found: {file_path}"
                 }
 
-                # Log the result
+                # Step 3c: Log not-found
                 if self.logger and call_id:
                     self.logger.log_tool_result(
                         call_id=call_id,
@@ -233,7 +236,7 @@ class FileOperations:
                 "message": f"Successfully read {file_path}"
             }
 
-            # Log the result
+            # Step 3d: Log success; only log content length to avoid bloating log file
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
@@ -251,7 +254,7 @@ class FileOperations:
                 "message": f"Error reading file: {str(e)}"
             }
 
-            # Log the error
+            # Step 3e: Log read error
             if self.logger and call_id:
                 self.logger.log_tool_result(
                     call_id=call_id,
