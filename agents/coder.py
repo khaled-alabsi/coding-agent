@@ -7,6 +7,7 @@ from .base_agent import BaseAgent
 from core.file_operations import FileOperations
 from utils import load_prompt
 from tools import ToolRunner
+import textwrap
 
 
 class CoderAgent(BaseAgent):
@@ -52,15 +53,18 @@ class CoderAgent(BaseAgent):
 
         # Start execution
         self.chat(
-            f"""Execute this plan step by step in the working directory.
+            textwrap.dedent(
+                f"""\
+                Execute this plan step by step in the working directory.
 
-Working Directory: {self.file_ops.working_directory}
+                Working Directory: {self.file_ops.working_directory}
 
-PLAN:
-{plan}
+                PLAN:
+                {plan}
 
-Start implementing now. Create all files as specified in the plan.""",
-            display=False
+                Start implementing now. Create all files as specified in the plan."""
+            ),
+            display=False,
         )
 
         # STEP 2: Run execution loop (iterate until COMPLETE or max iterations)
@@ -77,7 +81,8 @@ Start implementing now. Create all files as specified in the plan.""",
             print(f"\n{'='*70}")
             print(f"Iteration {iteration}/{max_iterations}")
             print(f"{'='*70}")
-            print(f"\n🤖 Coder: {last_response[:500]}...")
+            print(f"\n🤖 Coder: {last_response[:2500]}...")
+            print(f"\n🤖 Log done")
 
             # Check if complete
             if "COMPLETE" in last_response:
@@ -183,6 +188,7 @@ Start implementing now. Create all files as specified in the plan.""",
 
     def _parse_and_execute_actions(self, response: str) -> List[Dict[str, Any]]:
         """Parse and execute actions from the agent's response."""
+        print(f"\n🔍 Parsing actions from response...")
         results = []
 
         # Log to file: starting action parsing
@@ -197,6 +203,8 @@ Start implementing now. Create all files as specified in the plan.""",
         # STEP 1A: Parse BASH commands
         bash_pattern = r'BASH:\s*(.+?)(?=\n(?:BASH:|WRITE_FILE:|READ_FILE:|COMPLETE|$))'
         bash_commands = re.findall(bash_pattern, response, re.DOTALL)
+        print(f"Found {len(bash_commands)} BASH commands to execute.")
+        if bash_commands: print(f"The bash commands are:\n {bash_commands}")
 
         for command in bash_commands:
             command = command.strip()

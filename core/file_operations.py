@@ -14,11 +14,8 @@ class FileOperations:
 
     def __init__(self, config: AgentConfig, logger: Optional['AgentLogger'] = None):
         """
-        Initialize file operations.
-
-        Args:
-            config: Agent configuration
-            logger: Optional logger for tracking tool interactions
+        Step 0: Initialize file operations utility. This object is shared by agents to run BASH,
+        write files, and read files while keeping logging consistent.
         """
         self.config = config
         self.logger = logger
