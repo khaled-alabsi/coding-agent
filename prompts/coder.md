@@ -165,10 +165,6 @@ Before marking the project as COMPLETE, you MUST:
    - [ ] package.json has all required dependencies
    - [ ] Build configs are complete and valid
    - [ ] Root `index.html` exists (for web apps) with `<div id="root"></div>` and `<script type="module" src="/src/main.tsx">`
-   - [ ] `NO_GO.md` created at project root with the NO-GO rules:
-         - Never generate pictures/images (png, jpg, svg, etc.)
-         - No inline SVG or base64 images
-         - Use textual placeholders or TODOs for imagery
    - [ ] README has clear installation and run instructions
    - [ ] Tailwind classes used in CSS (`@apply`) all exist (custom colors declared in `tailwind.config.js` or defined within `@layer`)
 
