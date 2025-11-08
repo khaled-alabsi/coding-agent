@@ -1,6 +1,6 @@
 """Planner Agent - Creates detailed execution plans."""
 from .base_agent import BaseAgent
-from ..utils import load_prompt
+from utils import load_prompt
 
 
 class PlannerAgent(BaseAgent):

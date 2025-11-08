@@ -2,8 +2,9 @@
 import re
 from typing import List, Dict, Any
 from .base_agent import BaseAgent
-from ..core import FileOperations
-from ..utils import load_prompt
+
+from core import FileOperations
+from utils import load_prompt
 
 
 class CoderAgent(BaseAgent):

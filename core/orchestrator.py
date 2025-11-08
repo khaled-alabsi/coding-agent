@@ -3,17 +3,19 @@ import json
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
-from ..config import AgentConfig
-from .llm_client import LLMClient
-from .file_operations import FileOperations
-from ..utils import AgentLogger, play_completion_sound, play_error_sound
-from ..agents import (
+
+from config import AgentConfig
+from utils import AgentLogger, play_completion_sound, play_error_sound
+from agents import (
     PromptEnhancerAgent,
     PlannerAgent,
     PlanEnhancerAgent,
     CoderAgent,
     ResultValidatorAgent
 )
+
+from core.llm_client import LLMClient
+from core.file_operations import FileOperations
 
 
 class AgentOrchestrator:

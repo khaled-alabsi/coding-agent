@@ -13,8 +13,10 @@ Agents:
 
 from pathlib import Path
 from typing import Optional
-from .config import AgentConfig
-from .core import AgentOrchestrator
+
+# Import from top-level packages (repo is used as a module root)
+from config import AgentConfig
+from core import AgentOrchestrator
 
 
 def run(

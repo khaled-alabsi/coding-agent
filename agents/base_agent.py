@@ -1,10 +1,11 @@
 """Base agent class with common functionality."""
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-from ..config import AgentConfig
-from ..core import LLMClient
-from ..history import HistoryCompactor
-from ..utils import strip_thinking_tags
+
+from config import AgentConfig
+from core import LLMClient
+from history import HistoryCompactor
+from utils import strip_thinking_tags
 
 
 class BaseAgent(ABC):

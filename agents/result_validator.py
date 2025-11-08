@@ -1,7 +1,8 @@
 """Result Validator Agent - Validates implementation against plan."""
 from .base_agent import BaseAgent
-from ..core import FileOperations
-from ..utils import load_prompt
+
+from core import FileOperations
+from utils import load_prompt
 
 
 class ResultValidatorAgent(BaseAgent):
@@ -62,7 +63,7 @@ Return your validation in the specified JSON format."""
 
         # Parse the validation result
         import json
-        from ..utils.helpers import extract_json
+        from utils.helpers import extract_json
 
         try:
             validation_result = extract_json(response)

@@ -1,6 +1,6 @@
 """Plan Enhancer Agent - Improves and validates execution plans."""
 from .base_agent import BaseAgent
-from ..utils import load_prompt
+from utils import load_prompt
 
 
 class PlanEnhancerAgent(BaseAgent):

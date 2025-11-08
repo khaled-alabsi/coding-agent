@@ -1,6 +1,6 @@
 """Prompt Enhancer Agent - Improves user prompts for better clarity."""
 from .base_agent import BaseAgent
-from ..utils import load_prompt
+from utils import load_prompt
 
 
 class PromptEnhancerAgent(BaseAgent):

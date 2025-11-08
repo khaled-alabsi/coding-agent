@@ -4,8 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Sequence
 
-from ..config import AgentConfig
-from ..core import LLMClient
+from config import AgentConfig
+from core import LLMClient
 
 
 @dataclass

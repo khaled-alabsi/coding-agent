@@ -1,11 +1,12 @@
 """LLM client wrapper supporting both Azure OpenAI and local LLM."""
 from openai import OpenAI, AzureOpenAI
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
-from ..config import AgentConfig
-from ..utils import play_truncation_sound, play_fix_attempt_sound
+
+from config import AgentConfig
+from utils import play_truncation_sound, play_fix_attempt_sound
 
 if TYPE_CHECKING:
-    from ..utils.logger import AgentLogger
+    from utils.logger import AgentLogger
 
 
 class LLMClient:

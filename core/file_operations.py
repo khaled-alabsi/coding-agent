@@ -2,10 +2,11 @@
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional, TYPE_CHECKING
-from ..config import AgentConfig
+
+from config import AgentConfig
 
 if TYPE_CHECKING:
-    from ..utils.logger import AgentLogger
+    from utils.logger import AgentLogger
 
 
 class FileOperations:
