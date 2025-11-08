@@ -1,7 +1,7 @@
 """Result Validator Agent - Validates implementation against plan."""
 from .base_agent import BaseAgent
 
-from core import FileOperations
+from core.file_operations import FileOperations
 from utils import load_prompt
 
 

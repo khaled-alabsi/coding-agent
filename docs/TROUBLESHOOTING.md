@@ -310,7 +310,7 @@ Error: Model 'deepseek-ai/DeepSeek-R1' not found
 
 1. **Analyze validation history**:
    ```bash
-   cat output/logs/workflow_steps_*/5_validation_*.md
+   cat output/logs/workflow_steps_*/2_validation_result*.json
    ```
 
    Look for:
@@ -426,6 +426,95 @@ Total tokens (270,000) > context_window (262,144)
 
 ## File Generation Problems
 
+### Problem: "No files created in output folder" or "Workflow appears stuck"
+
+**Symptoms**:
+- Workflow runs but no files appear in `output/` directory
+- Log shows LLM request but no response
+- No tool calls (write_file, bash, read_file) in logs
+- Workflow appears frozen or takes very long
+
+**Diagnosis**:
+```bash
+# Check if any tool calls were made
+cat output/logs/agent_log_*.json | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+tool_calls = [e for e in data['entries'] if e.get('type') == 'tool_call']
+print(f'Tool calls: {len(tool_calls)}')
+"
+
+# If output is "Tool calls: 0", the LLM never responded
+```
+
+**Root Causes**:
+1. **LLM response taking too long** - Large task with high max_tokens
+2. **LLM connection timeout** - Network or server issue
+3. **LLM generating invalid response** - Model struggling with task complexity
+4. **User interrupted before completion** - Stopped workflow prematurely
+
+**Solutions**:
+
+1. **Check the agent log for the last entry**:
+   ```bash
+   cat output/logs/agent_log_*.json | python3 -c "
+   import sys, json
+   data = json.load(sys.stdin)
+   last = data['entries'][-1]
+   print(f'Last entry: {last[\"type\"]}')
+   print(f'Agent: {last.get(\"agent\", \"N/A\")}')
+   "
+   ```
+
+   If last entry is `llm_request` with no following `llm_response`, the LLM never responded.
+
+2. **Reduce max_tokens to speed up generation**:
+   ```python
+   run(
+       prompt="...",
+       max_tokens=10000  # Smaller = faster response
+   )
+   ```
+
+3. **Simplify the task**:
+   ```python
+   # Instead of:
+   run(prompt="Create a complete full-stack app with 20 features")
+
+   # Try:
+   run(prompt="Create a simple TODO app with 3 components")
+   ```
+
+4. **Test LLM connectivity**:
+   ```bash
+   # Test if LM Studio is responding
+   curl -X POST http://localhost:1234/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{"model":"your-model","messages":[{"role":"user","content":"Hi"}],"max_tokens":50}'
+   ```
+
+5. **Check LM Studio logs**:
+   - Open LM Studio
+   - Check server logs for errors
+   - Look for timeouts or memory issues
+
+6. **Run the file operations test**:
+   ```bash
+   python3 tests/test_file_operations.py
+   ```
+
+   This verifies that the file writing system works correctly.
+
+7. **Wait longer before interrupting**:
+   - Large tasks can take 5-10 minutes
+   - Watch for activity in LM Studio (token generation)
+   - Don't interrupt unless truly stuck (no activity for 10+ minutes)
+
+**How to verify the agent is working (not stuck)**:
+- Check LM Studio UI - should show "Generating..." with token count increasing
+- CPU/GPU usage should be high
+- If no activity in LM Studio, then it's stuck
+
 ### Problem: "Cannot GET /" when testing generated app
 
 **Symptoms**:
@@ -443,7 +532,7 @@ Cannot GET /
 
 2. **Verify coder ran verification checklist**:
    ```bash
-   cat output/logs/workflow_steps_*/4_code.md
+   cat output/logs/workflow_steps_*/1_implementation_result.md
    ```
 
    Should see:
@@ -868,10 +957,9 @@ print(f"Messages in history: {len(coder.messages)}")
 ls -la output/logs/workflow_steps_*/
 
 # Check each step
-cat output/logs/workflow_steps_20251108_110714/0_original_prompt.md
-cat output/logs/workflow_steps_20251108_110714/2_plan.md
-cat output/logs/workflow_steps_20251108_110714/4_code.md
-cat output/logs/workflow_steps_20251108_110714/5_validation_1.md
+cat output/logs/workflow_steps_20251108_110714/0_user_prompt.md
+cat output/logs/workflow_steps_20251108_110714/1_implementation_result.md
+cat output/logs/workflow_steps_20251108_110714/2_validation_result.json
 ```
 
 ---

@@ -74,7 +74,7 @@ def test_llm_client():
 
     try:
         from config import AgentConfig
-        from core import LLMClient
+        from core.llm_client import LLMClient
 
         print("\n1️⃣ Creating config...")
         config = AgentConfig(

@@ -105,7 +105,8 @@ class LLMClient:
                 messages=messages,
                 system_message=system_message,
                 temperature=temperature,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
+                model=self.model_name,
             )
 
         try:

@@ -85,10 +85,7 @@ coding-agent/
 ├── azure_agent/                   # 🤖 Main package
 │   ├── agents/                    # Agent implementations
 │   │   ├── base_agent.py         # Base agent class
-│   │   ├── prompt_enhancer.py    # Prompt enhancement agent
-│   │   ├── planner.py            # Planning agent
-│   │   ├── plan_enhancer.py      # Plan validation agent
-│   │   ├── coder.py              # Code generation agent
+│   │   ├── coder.py              # Code generation agent (invokes tools)
 │   │   └── result_validator.py   # Validation agent
 │   │
 │   ├── core/                      # Core components
@@ -103,6 +100,10 @@ coding-agent/
 │   │   ├── sound.py              # Sound notifications
 │   │   ├── context_analyzer.py   # Token analysis
 │   │   └── llm_tester.py         # LLM testing
+│   │
+│   ├── tools/                     # Coder-invokable tools
+│   │   ├── __init__.py
+│   │   └── prompt_tools.py       # enhance_prompt / create_plan / enhance_plan
 │   │
 │   ├── config/                    # Configuration
 │   │   └── settings.py           # Config dataclass
@@ -164,6 +165,10 @@ results = run(
 See [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) for more examples.
 
 ### Analyzing Logs
+
+The agent log is a JSON file at `output/logs/agent_log_{timestamp}.json`.
+It contains an `entries` array with events like:
+`workflow_start/complete`, `llm_request/response`, `tool_call/result` (tools, bash, write_file, read_file), and `agent_start/complete`.
 
 ```python
 from utils.context_analyzer import ContextAnalyzer

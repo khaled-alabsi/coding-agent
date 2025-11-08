@@ -11,7 +11,6 @@ from .sound import (
 )
 from .prompt_loader import load_prompt, reload_prompts, get_available_prompts
 from .context_analyzer import ContextAnalyzer
-from .llm_tester import test_llm_context
 from .history_compactor import HistoryCompactor
 
 __all__ = [
@@ -33,3 +32,8 @@ __all__ = [
     'test_llm_context',
     'HistoryCompactor',
 ]
+
+# Lazy wrapper to avoid importing heavy deps (e.g., OpenAI client) at module import
+def test_llm_context(*args, **kwargs):
+    from .llm_tester import test_llm_context as _test
+    return _test(*args, **kwargs)

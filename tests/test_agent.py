@@ -4,7 +4,7 @@ Test to verify the multi-agent system configuration
 """
 
 from config import AgentConfig
-from core import AgentOrchestrator
+from core.orchestrator import AgentOrchestrator
 from agents import CoderAgent
 
 

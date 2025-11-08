@@ -1,10 +1,12 @@
 """Coder Agent - Executes the implementation plan."""
 import re
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 from .base_agent import BaseAgent
 
-from core import FileOperations
+from core.file_operations import FileOperations
 from utils import load_prompt
+from tools import ToolRunner
 
 
 class CoderAgent(BaseAgent):
@@ -21,6 +23,11 @@ class CoderAgent(BaseAgent):
         """
         super().__init__(config, llm_client)
         self.file_ops = file_ops
+        self._tool_runner = ToolRunner(llm_client, config, agent_name=self.agent_name)
+
+    def set_tools_dir(self, tools_dir: Path) -> None:
+        """Set directory where tool I/O snapshots are stored."""
+        self._tool_runner.set_tools_dir(Path(tools_dir))
 
     @property
     def agent_name(self) -> str:
@@ -91,9 +98,94 @@ Start implementing now. Create all files as specified in the plan.""",
         print(f"\n⚠️  Reached maximum iterations ({max_iterations})")
         return self.get_last_response() or "Execution incomplete"
 
+    def execute_from_prompt(self, user_prompt: str) -> str:
+        """Drive the build starting from a raw user prompt.
+
+        The agent may choose to invoke tools to enhance the prompt,
+        create a plan, and/or enhance the plan before implementation.
+        """
+        intro = (
+            "You are given a raw user request. First decide if it needs enhancement,"
+            " whether a plan is present or required, and whether that plan needs"
+            " enhancement. Use TOOL calls to perform these actions as needed, then"
+            " proceed with implementation using BASH/WRITE_FILE/READ_FILE."
+            "\n\nUSER REQUEST:\n" + user_prompt
+        )
+        # Kick off the conversation
+        self.chat(intro, display=False)
+
+        iteration = 0
+        max_iterations = self.config.max_iterations
+
+        while iteration < max_iterations:
+            iteration += 1
+            last_response = self.get_last_response()
+            if not last_response:
+                # Log to file: no response received
+                if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                    self.llm_client.logger.log_event(
+                        event_type="iteration_no_response",
+                        agent=self.agent_name,
+                        data={"iteration": iteration},
+                        message=f"No response in iteration {iteration}, breaking loop"
+                    )
+                break
+
+            print(f"\n{'='*70}")
+            print(f"Iteration {iteration}/{max_iterations}")
+            print(f"{'='*70}")
+            print(f"\n🤖 Coder: {last_response[:500]}...")
+
+            # Log to file: iteration state
+            if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                self.llm_client.logger.log_event(
+                    event_type="iteration_progress",
+                    agent=self.agent_name,
+                    data={
+                        "iteration": iteration,
+                        "max_iterations": max_iterations,
+                        "response_preview": last_response[:200],
+                        "has_complete": "COMPLETE" in last_response
+                    },
+                    message=f"Iteration {iteration}/{max_iterations}"
+                )
+
+            if "COMPLETE" in last_response:
+                print(f"\n✅ Coder completed implementation!")
+                # Log to file: completion detected
+                if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                    self.llm_client.logger.log_event(
+                        event_type="coder_complete",
+                        agent=self.agent_name,
+                        data={"iteration": iteration},
+                        message=f"Coder marked COMPLETE at iteration {iteration}"
+                    )
+                return last_response
+
+            # Execute any actions (tools, shell, file I/O)
+            action_results = self._parse_and_execute_actions(last_response)
+
+            if action_results:
+                results_message = self._format_action_results(action_results)
+                self.chat(results_message, display=False)
+            else:
+                break
+
+        print(f"\n⚠️  Reached maximum iterations ({max_iterations})")
+        return self.get_last_response() or "Execution incomplete"
+
     def _parse_and_execute_actions(self, response: str) -> List[Dict[str, Any]]:
         """Parse and execute actions from the agent's response."""
         results = []
+
+        # Log to file: starting action parsing
+        if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+            self.llm_client.logger.log_event(
+                event_type="action_parsing_start",
+                agent=self.agent_name,
+                data={"response_length": len(response)},
+                message=f"Starting to parse actions from response ({len(response)} chars)"
+            )
 
         # Parse BASH commands
         bash_pattern = r'BASH:\s*(.+?)(?=\n(?:BASH:|WRITE_FILE:|READ_FILE:|COMPLETE|$))'
@@ -113,9 +205,29 @@ Start implementing now. Create all files as specified in the plan.""",
             if result["stderr"]:
                 print(f"⚠️  Error: {result['stderr'][:500]}")
 
-        # Parse WRITE_FILE commands
-        write_pattern = r'WRITE_FILE:\s*(.+?)\n```(?:\w+)?\n(.+?)```'
-        write_commands = re.findall(write_pattern, response, re.DOTALL)
+        # Parse WRITE_FILE commands (robust to missing closing code fences)
+        fenced_pattern = r'WRITE_FILE:\s*(.+?)\n```(?:\w+)?\n([\s\S]*?)```'
+        write_commands = re.findall(fenced_pattern, response, re.DOTALL)
+
+        # Fallback: no closing ```; capture until next marker or end
+        consumed_spans = []
+        for m in re.finditer(fenced_pattern, response, re.DOTALL):
+            consumed_spans.append((m.start(), m.end()))
+
+        def overlaps(i0, i1, spans):
+            for s0, s1 in spans:
+                if not (i1 <= s0 or i0 >= s1):
+                    return True
+            return False
+
+        fallback_pattern = re.compile(
+            r'WRITE_FILE:\s*(.+?)\n([\s\S]*?)(?=\n(?:BASH:|WRITE_FILE:|READ_FILE:|TOOL:|COMPLETE|$))',
+            re.DOTALL,
+        )
+        for m in fallback_pattern.finditer(response):
+            if overlaps(m.start(), m.end(), consumed_spans):
+                continue
+            write_commands.append((m.group(1), m.group(2)))
 
         for filepath, content in write_commands:
             filepath = filepath.strip()
@@ -147,6 +259,34 @@ Start implementing now. Create all files as specified in the plan.""",
             else:
                 print(f"❌ {result['message']}")
 
+        # Parse and execute TOOL invocations via ToolRunner
+        tool_results = self._tool_runner.run_calls(response)
+        for r in tool_results:
+            # Mirror logs for consistency with previous behavior
+            tool = r.get("tool")
+            if "error" in r:
+                print(f"❌ TOOL {tool} failed: {r['error']}")
+            else:
+                out = r.get("output", "")
+                print(f"✅ TOOL {tool} completed ({len(out)} chars)")
+        results.extend(tool_results)
+
+        # Log to file: action parsing complete
+        if hasattr(self, 'llm_client') and hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+            action_summary = {
+                "total_actions": len(results),
+                "bash_commands": sum(1 for r in results if r.get("type") == "bash"),
+                "files_written": sum(1 for r in results if r.get("type") == "write_file"),
+                "files_read": sum(1 for r in results if r.get("type") == "read_file"),
+                "tool_calls": sum(1 for r in results if r.get("type") == "tool"),
+            }
+            self.llm_client.logger.log_event(
+                event_type="action_parsing_complete",
+                agent=self.agent_name,
+                data=action_summary,
+                message=f"Parsed and executed {len(results)} actions"
+            )
+
         return results
 
     def _format_action_results(self, action_results: List[Dict[str, Any]]) -> str:
@@ -176,4 +316,17 @@ Start implementing now. Create all files as specified in the plan.""",
                 else:
                     results_message += f"Error: {action['result']['message']}\n\n"
 
+            elif action["type"] == "tool":
+                tool = action.get("tool")
+                if action.get("error"):
+                    results_message += f"Tool: {tool}\nError: {action['error']}\n\n"
+                else:
+                    # Truncate overly long tool outputs
+                    out = action.get("output", "")
+                    if len(out) > 2000:
+                        out = out[:2000] + "\n... (truncated)"
+                    results_message += f"Tool: {tool}\nOutput:\n{out}\n\n"
+
         return results_message
+
+    # (No coder-specific tool snapshot helpers; handled by ToolRunner)

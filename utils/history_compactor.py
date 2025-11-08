@@ -9,7 +9,10 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional, Sequence
 
 from config import AgentConfig
-from core import LLMClient
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.llm_client import LLMClient
 
 
 @dataclass
@@ -29,7 +32,7 @@ class HistoryCompactor:
     def __init__(
         self,
         config: AgentConfig,
-        llm_client: LLMClient,
+        llm_client: 'LLMClient',
         *,
         trigger_ratio: float = 0.85,
         max_recent_messages: int = 6,
@@ -209,4 +212,3 @@ class HistoryCompactor:
         for idx, section in enumerate(sections, start=1):
             lines.append(f"Section {idx}:\n{section}")
         return "\n\n".join(lines)
-

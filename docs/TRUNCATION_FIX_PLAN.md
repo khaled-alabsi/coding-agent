@@ -8,7 +8,7 @@
 
 ### Current Issue
 1. **Plan Enhancer** response was truncated at 35,500 tokens
-2. File saved incomplete: `3_plan_enhanced.md` ends mid-sentence
+2. File saved incomplete: `1_implementation_result.md` ends mid-sentence
 3. No detection or warning - fails silently
 4. User only discovers when reading output files
 
@@ -417,7 +417,7 @@ result = run(
 )
 
 # Expected: Auto-fix via continuation or retry
-assert "3_plan_enhanced.md" ends naturally
+assert "1_implementation_result.md" ends naturally
 assert no truncation in output
 ```
 

@@ -6,7 +6,9 @@
 
 ## Overview
 
-Azure Code Agent is a multi-agent system that generates complete software projects from natural language descriptions. It uses 5 specialized agents working in sequence, each with a specific role in the development pipeline.
+Azure Code Agent generates complete software projects from natural language descriptions. The Coder agent drives the build and can invoke helper tools (Prompt Enhancer, Planner, Plan Enhancer) on demand. A Validator agent then checks the results and can trigger fixes.
+
+Note: Earlier versions used separate enhancer/planner agents in distinct phases. Those are now implemented as callable tools the Coder can use when needed.
 
 **Key Features:**
 - Multi-agent pipeline with specialization
@@ -77,6 +79,13 @@ Azure Code Agent is a multi-agent system that generates complete software projec
 ---
 
 ## Agents Overview
+
+### Tools (invoked by Coder)
+- ENHANCE_PROMPT: Improves a raw user request
+- CREATE_PLAN: Produces a step-by-step plan
+- ENHANCE_PLAN: Validates and strengthens an existing plan
+
+These tools replace the prior standalone enhancer/planner agents.
 
 ### 1. Prompt Enhancer 🎯
 **Type**: Stateless
@@ -516,13 +525,11 @@ Different sounds for different events:
 **Location**: `output/logs/workflow_steps_{timestamp}/`
 
 **Contents**:
-- `0_original_prompt.md` - User's request
-- `1_prompt_enhanced.md` - Enhanced prompt (if enabled)
-- `2_plan.md` - Initial plan
-- `3_plan_enhanced.md` - Enhanced plan (if enabled)
-- `4_code.md` - Generated code
-- `5_validation_N.md` - Validation reports
-- `final_result.md` - Complete output
+- `0_user_prompt.md` - User's request
+- `1_implementation_result.md` - Implementation summary (Coder)
+- `2_validation_result.json` - Validation report (Validator)
+- `1_implementation_result_fixed_N.md` - Implementation after fix iteration N
+- `2_validation_result_iteration_N.json` - Validation after fix iteration N
 
 ### Failure Logs
 **Location**: `output/fail_logs/failure_{timestamp}.json`

@@ -16,7 +16,7 @@ from typing import Optional
 
 # Import from top-level packages (repo is used as a module root)
 from config import AgentConfig
-from core import AgentOrchestrator
+from core.orchestrator import AgentOrchestrator
 
 
 def run(

@@ -264,7 +264,7 @@ python run_agent.py "Create a test project"
 # Check logs
 ls -la output/logs/
 
-# Analyze results
+# Analyze results (entry types: workflow_start/complete, llm_request/response, tool_call/result, agent_start/complete)
 python -c "
 from utils import ContextAnalyzer
 analyzer = ContextAnalyzer()

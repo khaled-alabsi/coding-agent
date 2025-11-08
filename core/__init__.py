@@ -1,6 +1,11 @@
-"""Core functionality for Azure Code Agent."""
-from .llm_client import LLMClient
-from .file_operations import FileOperations
-from .orchestrator import AgentOrchestrator
+"""Core package for Azure Code Agent.
 
-__all__ = ['LLMClient', 'FileOperations', 'AgentOrchestrator']
+Intentionally keeps __init__ lightweight to avoid importing heavy
+dependencies (e.g., OpenAI client) at package import time.
+Import submodules directly as needed, e.g.:
+  from core.llm_client import LLMClient
+  from core.file_operations import FileOperations
+  from core.orchestrator import AgentOrchestrator
+"""
+
+__all__: list[str] = []

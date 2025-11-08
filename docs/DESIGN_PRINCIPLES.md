@@ -477,35 +477,51 @@ if tokens > config.context_window * config.truncation_threshold:
 ### Implementation
 
 **Logging**:
-```python
-# Every LLM call is logged
+```json
+// LLM request
 {
-  "timestamp": "2025-11-08T10:30:45.123",
-  "agent_name": "Coder",
-  "model": "deepseek-ai/DeepSeek-R1",
-  "temperature": 0.0,
-  "max_tokens": 50000,
-  "system_prompt": "...",
-  "messages": [...],
-  "response": "...",
-  "has_thinking_tags": true,
-  "truncation_detected": false,
-  "continuation_attempt": 0,
-  "error": null  # Or error details if failed
+  "id": "Coder_0",
+  "type": "llm_request",
+  "agent": "Coder",
+  "data": {
+    "system_message": "...",
+    "messages": [ { "role": "user", "content": "..." } ],
+    "parameters": { "temperature": 0.0, "max_tokens": 50000, "model": "deepseek/..." }
+  }
+}
+
+// LLM response
+{
+  "id": "Coder_0_response",
+  "type": "llm_response",
+  "agent": "Coder",
+  "data": { "response": "...", "tokens_used": 12345 }
+}
+
+// Tool call/result (tools, bash, write_file, read_file)
+{
+  "type": "tool_call",
+  "agent": "Coder",
+  "data": { "tool": "CREATE_PLAN", "input": {"input": "..."} }
+}
+{
+  "type": "tool_result",
+  "agent": "Coder",
+  "data": { "tool": "CREATE_PLAN", "output": {"output": "..."}, "success": true, "error": null }
 }
 ```
 
 **Workflow Steps**:
 ```
 output/logs/workflow_steps_20251108_110714/
-├── 0_original_prompt.md
-├── 1_prompt_enhanced.md
-├── 2_plan.md
-├── 3_plan_enhanced.md
-├── 4_code.md
-├── 5_validation_1.md
-├── 5_validation_2.md
-└── final_result.md
+├── 0_user_prompt.md
+├── 1_implementation_result.md
+├── 2_validation_result.json
+├── 1_implementation_result_fixed_1.md
+├── 2_validation_result_iteration_1.json
+├── 1_implementation_result_fixed_2.md
+├── 2_validation_result_iteration_2.json
+└── README.md
 ```
 
 **Failure Reports**:

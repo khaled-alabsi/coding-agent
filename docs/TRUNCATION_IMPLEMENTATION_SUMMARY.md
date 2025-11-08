@@ -223,9 +223,9 @@ results = run(
 
 ### Verify Fix
 
-Check that `3_plan_enhanced.md` now ends naturally:
+Check that `1_implementation_result.md` now ends naturally:
 ```bash
-tail -20 azure_agent/workflow_steps_*/3_plan_enhanced.md
+tail -20 output/logs/workflow_steps_*/1_implementation_result.md
 ```
 
 Should see:

@@ -6,6 +6,11 @@
 
 ## 1. AGENT WORKFLOW
 
+Updated orchestration: The Coder agent now decides whether to enhance the
+prompt, create a plan, and/or enhance the plan by invoking tools. The prior
+separate phases (Prompt Enhancer, Planner, Plan Enhancer) are implemented as
+tools the Coder may call.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    USER PROMPT (Input)                          │
@@ -13,7 +18,7 @@
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 1: Prompt Enhancer (Optional - can skip)                │
+│  TOOL: ENHANCE_PROMPT (optional; Coder invoked)                │
 │  ─────────────────────────────────────────────────────────────  │
 │  Memory: Fresh (no history)                                     │
 │  Input: Raw user prompt                                         │
@@ -23,7 +28,7 @@
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 2: Planner                                               │
+│  TOOL: CREATE_PLAN (optional; Coder invoked)                    │
 │  ─────────────────────────────────────────────────────────────  │
 │  Memory: Fresh (no history)                                     │
 │  Input: Enhanced prompt                                         │
@@ -33,7 +38,7 @@
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 3: Plan Enhancer (Optional - can skip)                  │
+│  TOOL: ENHANCE_PLAN (optional; Coder invoked)                  │
 │  ─────────────────────────────────────────────────────────────  │
 │  Memory: Fresh (no history)                                     │
 │  Input: Raw plan from Planner                                   │
@@ -43,7 +48,7 @@
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 4: Coder (Has internal loop)                            │
+│  Coder (Has internal loop)                                     │
 │  ─────────────────────────────────────────────────────────────  │
 │  Memory: CONVERSATION HISTORY                                   │
 │  - Stores all user/assistant messages                           │
@@ -63,7 +68,7 @@
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 5: Result Validator (External validation loop)          │
+│  Result Validator (External validation loop)                   │
 │  ─────────────────────────────────────────────────────────────  │
 │  Memory: CONVERSATION HISTORY (per validation attempt)          │
 │  - Fresh at start                                                │

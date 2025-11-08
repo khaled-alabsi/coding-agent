@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 
 from config import AgentConfig
-from core import LLMClient
+from core.llm_client import LLMClient
 from utils import strip_thinking_tags, HistoryCompactor
 
 
@@ -59,11 +59,35 @@ class BaseAgent(ABC):
             print(f"{'='*70}")
 
         try:
+            print(f"\n⏳ {self.agent_name}: Waiting for LLM response...")
+
+            # Log to file: waiting for response
+            if hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                self.llm_client.logger.log_event(
+                    event_type="llm_waiting",
+                    agent=self.agent_name,
+                    message=f"Waiting for LLM response (context: {len(self.messages)} messages)"
+                )
+
             response = self.llm_client.chat(
                 messages=self.messages,
                 system_message=self.system_prompt,
                 agent_name=self.agent_name  # Pass agent name for logging
             )
+
+            print(f"✅ {self.agent_name}: Received LLM response ({len(response)} chars)")
+
+            # Log to file: response received
+            if hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                self.llm_client.logger.log_event(
+                    event_type="llm_response_received",
+                    agent=self.agent_name,
+                    data={
+                        "response_length": len(response),
+                        "has_content": bool(response)
+                    },
+                    message=f"Received LLM response ({len(response)} chars)"
+                )
 
             # Strip thinking tags from response before storing/returning
             # (Full response with thinking is already logged in llm_client)
@@ -82,6 +106,15 @@ class BaseAgent(ABC):
         except Exception as e:
             error_msg = f"Error in {self.agent_name}: {str(e)}"
             print(f"\n❌ {error_msg}")
+
+            # Log the error to logger if available
+            if hasattr(self.llm_client, 'logger') and self.llm_client.logger:
+                self.llm_client.logger.log_event(
+                    event_type="agent_error",
+                    agent=self.agent_name,
+                    data={"error": str(e), "type": type(e).__name__}
+                )
+
             return error_msg
 
     def reset_conversation(self):

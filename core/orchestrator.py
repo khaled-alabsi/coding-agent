@@ -6,15 +6,7 @@ from datetime import datetime
 
 from config import AgentConfig
 from utils import AgentLogger, play_completion_sound, play_error_sound
-from agents import (
-    PromptEnhancerAgent,
-    PlannerAgent,
-    PlanEnhancerAgent,
-    CoderAgent,
-    ResultValidatorAgent
-)
 
-from core.llm_client import LLMClient
 from core.file_operations import FileOperations
 
 
@@ -30,27 +22,35 @@ class AgentOrchestrator:
         """
         self.config = config
 
-        # Initialize logger
+        # Initialize logging paths under output/logs
         self.session_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        log_filename = f"agent_log_{self.session_timestamp}.json"
-        self.logger = AgentLogger(config.project_dir / log_filename)
+        self.logs_dir = (self.config.output_dir / "logs")
+        self.logs_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create workflow steps directory for clean outputs
-        self.steps_dir = config.project_dir / f"workflow_steps_{self.session_timestamp}"
-        self.steps_dir.mkdir(exist_ok=True)
+        log_filename = self.logs_dir / f"agent_log_{self.session_timestamp}.json"
+        self.logger = AgentLogger(log_filename)
+
+        # Create workflow steps directory for clean outputs (under logs)
+        self.steps_dir = self.logs_dir / f"workflow_steps_{self.session_timestamp}"
+        self.steps_dir.mkdir(parents=True, exist_ok=True)
 
         # Create README for the steps directory
         self._create_steps_readme()
 
         # Initialize core components with logger
+        from core.llm_client import LLMClient  # Lazy import to avoid early heavy deps
         self.llm_client = LLMClient(config, logger=self.logger)
         self.file_ops = FileOperations(config, logger=self.logger)
 
-        # Initialize all agents
-        self.prompt_enhancer = PromptEnhancerAgent(config, self.llm_client)
-        self.planner = PlannerAgent(config, self.llm_client)
-        self.plan_enhancer = PlanEnhancerAgent(config, self.llm_client)
+        # Initialize active agents (lazy import to avoid heavy deps at import time)
+        from agents.coder import CoderAgent
+        from agents.result_validator import ResultValidatorAgent
         self.coder = CoderAgent(config, self.llm_client, self.file_ops)
+        # Provide a directory to capture tool I/O snapshots
+        tools_dir = self.steps_dir / "tools"
+        tools_dir.mkdir(exist_ok=True)
+        if hasattr(self.coder, "set_tools_dir"):
+            self.coder.set_tools_dir(tools_dir)
         self.validator = ResultValidatorAgent(config, self.llm_client, self.file_ops)
 
         # Workflow state
@@ -104,43 +104,14 @@ class AgentOrchestrator:
         # Save original user prompt
         self._save_step_result(0, "user_prompt", user_prompt)
 
-        # PHASE 1: Prompt Enhancement
-        if not skip_prompt_enhancement:
-            print("\n" + "=" * 70)
-            print("PHASE 1: PROMPT ENHANCEMENT")
-            print("=" * 70)
-            self.enhanced_prompt = self.prompt_enhancer.enhance_prompt(user_prompt)
-            self._save_step_result(1, "prompt_enhanced", self.enhanced_prompt)
-        else:
-            print("\n⏭️  Skipping prompt enhancement")
-            self.enhanced_prompt = user_prompt
-
-        # PHASE 2: Planning
+        # SINGLE-PASS IMPLEMENTATION: Coder orchestrates with tools
         print("\n" + "=" * 70)
-        print("PHASE 2: PLANNING")
+        print("IMPLEMENTATION (Coder-driven with tools)")
         print("=" * 70)
-        self.plan = self.planner.create_plan(self.enhanced_prompt)
-        self._save_step_result(2, "plan", self.plan)
+        self.implementation_result = self.coder.execute_from_prompt(self.current_prompt)
+        self._save_step_result(1, "implementation_result", self.implementation_result)
 
-        # PHASE 3: Plan Enhancement
-        if not skip_plan_enhancement:
-            print("\n" + "=" * 70)
-            print("PHASE 3: PLAN ENHANCEMENT")
-            print("=" * 70)
-            self.enhanced_plan = self.plan_enhancer.enhance_plan(self.plan)
-            self._save_step_result(3, "plan_enhanced", self.enhanced_plan)
-        else:
-            print("\n⏭️  Skipping plan enhancement")
-            self.enhanced_plan = self.plan
-
-        # PHASE 4: Implementation
-        print("\n" + "=" * 70)
-        print("PHASE 4: IMPLEMENTATION")
-        print("=" * 70)
-        self.implementation_result = self.coder.execute_plan(self.enhanced_plan)
-        self._save_step_result(4, "implementation_result", self.implementation_result)
-
-        # PHASE 5: Validation and Iterative Fixing
+        # VALIDATION and Iterative Fixing
         print("\n" + "=" * 70)
         print("PHASE 5: VALIDATION")
         print("=" * 70)
@@ -157,9 +128,9 @@ class AgentOrchestrator:
             # Save validation result
             validation_json = json.dumps(self.validation_result, indent=2, ensure_ascii=False)
             if fix_iteration == 0:
-                self._save_step_result(5, "validation_result", validation_json, "json")
+                self._save_step_result(2, "validation_result", validation_json, "json")
             else:
-                self._save_step_result(5 + fix_iteration, f"validation_result_iteration_{fix_iteration}", validation_json, "json")
+                self._save_step_result(2 + fix_iteration, f"validation_result_iteration_{fix_iteration}", validation_json, "json")
 
             # Display validation results
             self._display_validation_results(self.validation_result)
@@ -213,7 +184,7 @@ class AgentOrchestrator:
             )
 
             # Save the fixed implementation result
-            self._save_step_result(4 + fix_iteration, f"implementation_result_fixed_{fix_iteration}", self.implementation_result)
+            self._save_step_result(1 + fix_iteration, f"implementation_result_fixed_{fix_iteration}", self.implementation_result)
 
         # PHASE 6: Summary
         print("\n" + "=" * 70)
@@ -342,27 +313,30 @@ class AgentOrchestrator:
         """Create a README in the steps directory explaining the files."""
         readme_content = """# Workflow Step Results
 
-This directory contains the clean output from each agent in the multi-agent workflow.
-These files make it easy to review what each agent produced without parsing through the detailed JSON log.
+This directory contains clean outputs for each major step of the workflow and a
+record of any tools the Coder used (prompt/plan tools) with their inputs and outputs.
 
 ## Files
 
 - **0_user_prompt.md** - Original user prompt
-- **1_prompt_enhanced.md** - Enhanced prompt (from Prompt Enhancer Agent)
-- **2_plan.md** - Execution plan (from Planner Agent)
-- **3_plan_enhanced.md** - Enhanced and validated plan (from Plan Enhancer Agent)
-- **4_implementation_result.md** - Implementation output (from Coder Agent)
-- **5_validation_result.json** - Validation results (from Result Validator Agent)
+- **1_implementation_result.md** - Implementation output (from Coder)
+- **2_validation_result.json** - Validation results (from Result Validator)
 
 If fix iterations occurred:
-- **4_implementation_result_fixed_N.md** - Fixed implementation (iteration N)
-- **5_validation_result_iteration_N.json** - Validation after fix (iteration N)
+- **1_implementation_result_fixed_N.md** - Fixed implementation (iteration N)
+- **2_validation_result_iteration_N.json** - Validation after fix (iteration N)
+
+## Tools Directory
+
+- `tools/` - Contains one file per tool invocation with both INPUT and OUTPUT.
+  - Example: `tools/tool_001_ENHANCE_PROMPT.md`
+  - Files include: Tool name, agent, INPUT section, OUTPUT or ERROR section
 
 ## Usage
 
-1. **Review the workflow progression** - Read files in order (0 → 1 → 2 → 3 → 4 → 5)
-2. **Check validation** - Look at validation_result.json for quality score and issues
-3. **See fixes applied** - If fixes were needed, compare original vs fixed implementations
+1. **Review the workflow** - Read files in order (0 → 1 → 2)
+2. **Check validation** - See `2_validation_result.json` for score and issues
+3. **Check tools** - Inspect `tools/` to see how prompt/plan were refined
 
 ## Related Files
 
@@ -410,7 +384,7 @@ If fix iterations occurred:
         """
         try:
             # Create fail log directory
-            fail_log_dir = self.config.project_dir / "fail_logs"
+            fail_log_dir = self.config.output_dir / "fail_logs"
             fail_log_dir.mkdir(exist_ok=True)
 
             # Generate fail log filename

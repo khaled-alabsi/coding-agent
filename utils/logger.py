@@ -43,7 +43,8 @@ class AgentLogger:
         messages: List[Dict[str, str]],
         system_message: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: int = 2000
+        max_tokens: int = 2000,
+        model: Optional[str] = None,
     ) -> str:
         """
         Log an outgoing LLM request.
@@ -72,8 +73,9 @@ class AgentLogger:
                 "messages": messages,
                 "parameters": {
                     "temperature": temperature,
-                    "max_tokens": max_tokens
-                }
+                    "max_tokens": max_tokens,
+                    "model": model,
+                },
             }
         }
 
@@ -271,6 +273,39 @@ class AgentLogger:
                 "total_duration": timestamp
             }
         }
+
+        self.entries.append(entry)
+        self._append_to_file(entry)
+
+    def log_event(
+        self,
+        event_type: str,
+        agent: str = "system",
+        data: Optional[Dict[str, Any]] = None,
+        message: Optional[str] = None
+    ):
+        """
+        Log a generic event.
+
+        Args:
+            event_type: Type of event (e.g., "response_received", "action_parsing", "error")
+            agent: Agent name (default: "system")
+            data: Additional data for the event
+            message: Optional message describing the event
+        """
+        timestamp = time.time() - self.start_time
+
+        entry = {
+            "id": f"{agent}_{event_type}_{len(self.entries)}",
+            "type": event_type,
+            "timestamp": timestamp,
+            "time_human": datetime.now().isoformat(),
+            "agent": agent,
+            "data": data or {}
+        }
+
+        if message:
+            entry["data"]["message"] = message
 
         self.entries.append(entry)
         self._append_to_file(entry)
