@@ -28,8 +28,8 @@ class AgentConfig:
     local_model: str = "local-model"
 
     # Generation parameters
-    context_window: int = 8000
-    max_tokens: int = 2000
+    context_window: int = 262144
+    max_tokens: int = 65500
     temperature: float = 0.7
 
     # Agent settings
