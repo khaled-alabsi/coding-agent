@@ -93,7 +93,12 @@ class ToolRunner:
                 "input_len": len(tool_input),
             }
             try:
-                func = self._registry.get(tool_name)
+                # Resolve tool: prefer current phase, but allow fallback to preparation tools
+                func = (
+                    self._registry.get(tool_name)
+                    or self._preparation_tools.get(tool_name)
+                    or self._implementation_tools.get(tool_name)
+                )
                 if not func:
                     raise ValueError(f"Unknown tool: {tool_name}")
                 # Log tool call if logger available

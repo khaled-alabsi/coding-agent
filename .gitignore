@@ -258,4 +258,4 @@ Thumbs.db
 *.log
 *.out
 agent_log_*.json
-output/logs/workflow_steps_*/*
+output/*

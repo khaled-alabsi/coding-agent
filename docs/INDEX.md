@@ -42,30 +42,36 @@ This is your entry point for understanding and working with the multi-agent codi
    - Memory architecture
    - Enhancement opportunities
 
-5. **[TRUNCATION_FIX_PLAN.md](TRUNCATION_FIX_PLAN.md)** - Truncation Detection & Fix
+5. **[CODER_WORKFLOW.md](CODER_WORKFLOW.md)** - Coder Agent Execution Loop
+   - Preparation vs implementation phases
+   - Tool invocation flow
+   - WRITE_FILE/BASH/READ_FILE lifecycle
+   - Logging and artifacts
+
+6. **[TRUNCATION_FIX_PLAN.md](TRUNCATION_FIX_PLAN.md)** - Truncation Detection & Fix
    - Dynamic detection strategy
    - Auto-fix implementation plan
    - Testing approach
 
-6. **[TRUNCATION_IMPLEMENTATION_SUMMARY.md](TRUNCATION_IMPLEMENTATION_SUMMARY.md)** - Implementation Details
+7. **[TRUNCATION_IMPLEMENTATION_SUMMARY.md](TRUNCATION_IMPLEMENTATION_SUMMARY.md)** - Implementation Details
    - What was implemented
    - How to use it
    - Configuration options
 
 ### Guides
 
-7. **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Development Guide
+8. **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Development Guide
    - Setup instructions
    - Contributing guidelines
    - Testing procedures
    - Code style
 
-8. **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration Reference
+9. **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration Reference
    - All settings explained
    - Environment variables
    - Defaults and overrides
 
-9. **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Troubleshooting
+10. **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Troubleshooting
    - Common issues
    - Error messages
    - Solutions

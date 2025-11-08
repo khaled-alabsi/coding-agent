@@ -116,14 +116,30 @@ class AgentOrchestrator:
         print("PHASE 5: VALIDATION")
         print("=" * 70)
 
+        if max_fix_iterations <= 0:
+            max_fix_iterations = 1
+
         fix_iteration = 0
         iteration_history = []  # Track all iterations for fail log
 
         while fix_iteration < max_fix_iterations:
-            self.validation_result = self.validator.validate_results(
-                self.enhanced_plan,
-                self.implementation_result
-            )
+            try:
+                self.validation_result = self.validator.validate_results(
+                    self.enhanced_plan,
+                    self.implementation_result
+                )
+            except Exception as e:
+                error_message = str(e)
+                print(f"\n❌ Validator error: {error_message}")
+                self.validation_result = {
+                    "status": "ERROR",
+                    "score": 0,
+                    "passed_checks": [],
+                    "failed_checks": ["Validator raised an exception"],
+                    "critical_issues": [error_message],
+                    "suggestions": [],
+                    "requires_fix": False,
+                }
 
             # Save validation result
             validation_json = json.dumps(self.validation_result, indent=2, ensure_ascii=False)
