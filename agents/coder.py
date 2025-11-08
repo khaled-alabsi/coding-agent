@@ -165,7 +165,16 @@ Start implementing now. Create all files as specified in the plan.""",
             # Execute any actions (tools, shell, file I/O)
             action_results = self._parse_and_execute_actions(last_response)
 
+            # Check if planning tools were used - if so, disable them for future iterations
             if action_results:
+                planning_tools_used = any(
+                    r.get("type") == "tool" and r.get("tool") in ["ENHANCE_PROMPT", "CREATE_PLAN", "ENHANCE_PLAN"]
+                    for r in action_results
+                )
+                if planning_tools_used and self._tool_runner._planning_tools_enabled:
+                    print("\n✓ Planning phase complete")
+                    self._tool_runner.disable_planning_tools()
+
                 results_message = self._format_action_results(action_results)
                 self.chat(results_message, display=False)
             else:

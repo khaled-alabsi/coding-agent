@@ -61,10 +61,19 @@ prompt and plan work. Format your responses using these markers:
 - **BASH:** `<command>` - for shell commands
 - **WRITE_FILE:** `<filepath>` - followed by the file content in a code block
 - **READ_FILE:** `<filepath>` - to read a file
-- **TOOL:** `<ENHANCE_PROMPT|CREATE_PLAN|ENHANCE_PLAN>` then provide an `INPUT:`
 - **COMPLETE** - when you've finished all tasks
 
-### TOOL Examples
+### Planning Tools (⚠️ USE ONLY AT THE BEGINNING)
+
+The following tools are ONLY available at the very start for planning:
+
+- **TOOL:** `<ENHANCE_PROMPT|CREATE_PLAN|ENHANCE_PLAN>` then provide an `INPUT:`
+
+**IMPORTANT**: These planning tools can ONLY be used in the first iteration for preparation.
+After you've enhanced the prompt and created/enhanced a plan, these tools become unavailable.
+During implementation, focus on BASH, WRITE_FILE, and READ_FILE.
+
+### Planning TOOL Examples (First Iteration Only)
 
 1) Enhance a raw user prompt before planning:
 
@@ -89,6 +98,8 @@ TOOL: ENHANCE_PLAN
 INPUT:
 <initial plan text>
 ```
+
+**After planning tools are used once, they are disabled. Proceed with implementation using BASH, WRITE_FILE, READ_FILE.**
 
 ## Example
 
