@@ -34,9 +34,9 @@ def run(
     skip_plan_enhancement: bool = False,
     max_fix_iterations: int = 3,
     # Generation parameters
-    temperature: float = 0.7,
-    max_tokens: int = 2000,
-    context_window: int = 8000
+    temperature: Optional[float] = None,
+    max_tokens: Optional[int] = None,
+    context_window: Optional[int] = None
 ) -> dict:
     """
     Run the multi-agent coding workflow.
@@ -62,9 +62,9 @@ def run(
             max_fix_iterations: Maximum number of fix iterations (default: 3)
 
         Generation Parameters:
-            temperature: Temperature for generation (default: 0.7)
-            max_tokens: Max tokens per response (default: 2000)
-            context_window: Context window size (default: 8000)
+            temperature: Temperature for generation (default: from config - 0.7)
+            max_tokens: Max tokens per response (default: from config - 50000)
+            context_window: Context window size (default: from config - 262144)
 
     Returns:
         Dict with workflow results
@@ -88,19 +88,26 @@ def run(
         ...     azure_deployment="gpt-4"
         ... )
     """
-    # Create config
-    config = AgentConfig(
-        use_local_llm=use_local_llm,
-        local_model=local_model,
-        local_api_base=local_api_base,
-        azure_api_key=azure_api_key,
-        azure_endpoint=azure_endpoint,
-        azure_deployment=azure_deployment,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        context_window=context_window,
-        max_retry_attempts=max_fix_iterations
-    )
+    # Create config with optional overrides
+    config_kwargs = {
+        'use_local_llm': use_local_llm,
+        'local_model': local_model,
+        'local_api_base': local_api_base,
+        'azure_api_key': azure_api_key,
+        'azure_endpoint': azure_endpoint,
+        'azure_deployment': azure_deployment,
+        'max_retry_attempts': max_fix_iterations
+    }
+
+    # Only override config defaults if explicitly provided
+    if temperature is not None:
+        config_kwargs['temperature'] = temperature
+    if max_tokens is not None:
+        config_kwargs['max_tokens'] = max_tokens
+    if context_window is not None:
+        config_kwargs['context_window'] = context_window
+
+    config = AgentConfig(**config_kwargs)
 
     # Set custom output directory if provided
     if output_dir:

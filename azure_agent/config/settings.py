@@ -29,12 +29,18 @@ class AgentConfig:
 
     # Generation parameters
     context_window: int = 262144
-    max_tokens: int = 35500
+    max_tokens: int = 50000
     temperature: float = 0.7
 
     # Agent settings
-    max_iterations: int = 50
+    max_iterations: int = 200
     max_retry_attempts: int = 10
+
+    # Truncation detection and auto-fix
+    truncation_detection_enabled: bool = True
+    auto_fix_truncation: bool = True
+    max_continuation_attempts: int = 3
+    truncation_threshold: float = 0.95  # 95% of max_tokens
 
     # Timeouts
     command_timeout: int = 300*2  # 5*2 minutes
