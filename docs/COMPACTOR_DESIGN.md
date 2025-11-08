@@ -1,18 +1,18 @@
 # History Compactor Design Rationale
 
-**Why the compactor is in `history/` and NOT in `agents/`**
+**Why the compactor is in `utils/` and NOT in `agents/`**
 
 ---
 
 ## TL;DR
 
-The `HistoryCompactor` is a **utility service**, not an agent. It belongs in `history/` because it's a shared infrastructure component used BY agents, not a decision-making agent itself.
+The `HistoryCompactor` is a **utility service**, not an agent. It belongs in `utils/` because it's a shared infrastructure component used BY agents, not a decision-making agent itself.
 
 ---
 
 ## Design Question
 
-> "Why is `HistoryCompactor` in `azure_agent/history/compactor.py` instead of `azure_agent/agents/compactor.py`?"
+> "Why is `HistoryCompactor` in `utils/history_compactor.py` instead of `agents/compactor.py`?"
 
 ## Answer: Separation of Concerns
 
@@ -44,7 +44,7 @@ A **utility** is a service component that:
 
 ### Evidence from Code
 
-#### Location: `azure_agent/history/compactor.py`
+#### Location: `utils/history_compactor.py`
 
 ```python
 class HistoryCompactor:
@@ -154,21 +154,21 @@ You wouldn't hire a "Memory Manager" as a person on your team - you'd give every
 - Inconsistent behavior across agents
 - Violates DRY principle
 
-### ✅ Option 3: Compactor as shared utility in `history/` (CURRENT)
+### ✅ Option 3: Compactor as shared utility in `utils/` (CURRENT)
 
 **Why chosen:**
-- Clear separation: agents = intelligence, history = infrastructure
+- Clear separation: agents = intelligence, utils = cross-cutting infrastructure
 - Reusable across all agents
 - Easy to test in isolation
 - Follows single responsibility principle
-- Natural location: `history/` contains history management utilities
+- Natural location: `utils/` contains shared utilities (including memory management)
 
 ---
 
 ## Folder Structure Rationale
 
 ```
-azure_agent/
+project/
 ├── agents/              # 🧠 Intelligence - Decision makers
 │   ├── base_agent.py   # All agents USE utilities
 │   ├── planner.py
@@ -180,24 +180,21 @@ azure_agent/
 │   ├── file_operations.py
 │   └── orchestrator.py
 │
-├── history/             # 💾 Memory Management - History utilities
-│   ├── compactor.py    # ← YOU ARE HERE
-│   └── __init__.py
-│
-└── utils/               # 🛠️ General Utilities - Helpers
+└── utils/               # 🛠️ General Utilities - Helpers + Memory
+    ├── history_compactor.py  # ← YOU ARE HERE
     ├── helpers.py
     ├── logger.py
     └── context_analyzer.py
 ```
 
-### Why `history/` folder exists:
+### Why the compactor is under `utils/`:
 
-Memory management is a **cross-cutting concern** that affects all agents but isn't core business logic. It deserves its own module because:
+Memory management is a **cross-cutting concern** that affects all agents but isn't core business logic. It belongs with shared utilities because:
 
 1. **Specialized domain** - Managing conversation memory is complex
 2. **Future expansion** - May add more memory strategies (RAG, vector stores, etc.)
 3. **Clear boundaries** - Separates memory concerns from agent logic
-4. **Easy to find** - Developers know where to look for history-related code
+4. **Easy to find** - Developers know to look under `utils/` for shared helpers
 
 ---
 
@@ -221,7 +218,7 @@ Memory management is a **cross-cutting concern** that affects all agents but isn
 ### 4. Extensibility
 - Easy to add new memory management utilities
 - Can swap compaction strategies without changing agents
-- Future: add RAG, vector stores, caching, etc. all in `history/`
+- Future: add RAG, vector stores, caching, etc. can also live under `utils/`
 
 ---
 
@@ -260,7 +257,7 @@ Here's how compaction actually works in practice:
 
 ---
 
-## When to Add to `agents/` vs `history/`
+## When to Add to `agents/` vs `utils/`
 
 ### Add to `agents/` when:
 - It makes autonomous decisions
@@ -269,10 +266,10 @@ Here's how compaction actually works in practice:
 - It communicates with users or other agents
 - It's a role in the system (Planner, Coder, etc.)
 
-### Add to `history/` when:
-- It manages conversation memory
+### Add to `utils/` when:
+- It manages conversation memory or other cross-cutting utilities
 - It's used BY agents, not acting AS an agent
-- It's infrastructure for memory constraints
+- It's infrastructure for shared constraints (tokens, files, logging)
 - It's shared across multiple agents
 - It's about token limits, summarization, context windows
 
@@ -280,7 +277,7 @@ Here's how compaction actually works in practice:
 
 ## Conclusion
 
-The `HistoryCompactor` is correctly placed in `azure_agent/history/` because:
+The `HistoryCompactor` is correctly placed in `utils/` because:
 
 1. **It's a utility service**, not an autonomous agent
 2. **It's used BY agents** through composition, not as a workflow participant

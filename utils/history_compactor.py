@@ -1,4 +1,8 @@
-"""Utilities for compacting long conversation histories."""
+"""Utilities for compacting long conversation histories.
+
+Moved from `history/compactor.py` to `utils/history_compactor.py` to live with
+other cross-cutting utilities.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -205,3 +209,4 @@ class HistoryCompactor:
         for idx, section in enumerate(sections, start=1):
             lines.append(f"Section {idx}:\n{section}")
         return "\n\n".join(lines)
+

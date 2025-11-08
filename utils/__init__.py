@@ -7,11 +7,12 @@ from .sound import (
     play_warning_sound,
     play_truncation_sound,
     play_validation_failed_sound,
-    play_fix_attempt_sound
+    play_fix_attempt_sound,
 )
 from .prompt_loader import load_prompt, reload_prompts, get_available_prompts
 from .context_analyzer import ContextAnalyzer
 from .llm_tester import test_llm_context
+from .history_compactor import HistoryCompactor
 
 __all__ = [
     'parse_code_blocks',
@@ -29,5 +30,6 @@ __all__ = [
     'reload_prompts',
     'get_available_prompts',
     'ContextAnalyzer',
-    'test_llm_context'
+    'test_llm_context',
+    'HistoryCompactor',
 ]

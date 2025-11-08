@@ -404,7 +404,7 @@ Total tokens (270,000) > context_window (262,144)
    # Compactor preserves last 6 messages by default
    # May need to increase
 
-   # Edit history/compactor.py
+   # Edit utils/history_compactor.py
    self.max_recent_messages = 10  # Preserve more recent messages
    ```
 

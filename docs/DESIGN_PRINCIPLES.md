@@ -183,11 +183,9 @@ project/
 │   ├── coder.py
 │   └── planner.py
 │
-├── history/         # 💾 Memory services (used BY agents)
-│   └── compactor.py
-│
-└── utils/           # 🛠️ General utilities
-    └── helpers.py
+├── utils/           # 🛠️ Shared utilities (used BY agents)
+│   ├── history_compactor.py  # Memory compaction
+│   └── helpers.py
 ```
 
 ### Trade-offs

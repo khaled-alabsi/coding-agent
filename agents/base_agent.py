@@ -4,8 +4,7 @@ from typing import List, Dict, Optional
 
 from config import AgentConfig
 from core import LLMClient
-from history import HistoryCompactor
-from utils import strip_thinking_tags
+from utils import strip_thinking_tags, HistoryCompactor
 
 
 class BaseAgent(ABC):

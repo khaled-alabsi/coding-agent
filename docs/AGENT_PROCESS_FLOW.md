@@ -389,7 +389,7 @@ class BaseAgent:
 ```
 
 ### Priority 3: Smart Compaction (High Effort)
-**Where**: `history/compactor.py` - enhance summarization
+**Where**: `utils/history_compactor.py` - enhance summarization
 - Extract file paths, imports, errors before summarizing
 - Preserve as structured data in summary message
 - Format for easy LLM parsing
@@ -406,7 +406,7 @@ max_iterations: 50      # Coder loop limit
 max_retry_attempts: 10  # Validation fix limit
 ```
 
-**Memory Compaction** (from `history/compactor.py`):
+**Memory Compaction** (from `utils/history_compactor.py`):
 ```python
 trigger_ratio: 0.85           # 85% of context window
 max_recent_messages: 6        # Keep last 6 messages

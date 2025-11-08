@@ -259,7 +259,7 @@ def _handle_truncation(self, truncation_info, ...):
 ---
 
 ### HistoryCompactor
-**Location**: [history/compactor.py](../azure_agent/history/compactor.py)
+**Location**: utils/history_compactor.py
 **Design Doc**: [COMPACTOR_DESIGN.md](COMPACTOR_DESIGN.md)
 
 **Purpose**: Summarize old conversation history to stay within context window
@@ -373,7 +373,7 @@ coding-agent/
 │   │   ├── file_operations.py
 │   │   └── orchestrator.py  # Workflow coordination
 │   │
-│   ├── history/             # 💾 Memory management layer
+│   ├── utils/               # 🛠️ Utilities (incl. memory)
 │   │   ├── compactor.py     # History summarization
 │   │   └── __init__.py
 │   │
@@ -402,7 +402,7 @@ coding-agent/
 ├── docs/                    # 📚 Documentation
 │   ├── INDEX.md            # Documentation index (start here!)
 │   ├── ARCHITECTURE.md     # This file
-│   ├── COMPACTOR_DESIGN.md # Why compactor is in history/
+│   ├── COMPACTOR_DESIGN.md # Why compactor is in utils/
 │   └── ...                 # Other docs
 │
 └── README.md               # Project README
@@ -411,7 +411,7 @@ coding-agent/
 **Design Principle**: Clear separation of concerns
 - `agents/` = Intelligence (decision makers)
 - `core/` = Infrastructure (plumbing)
-- `history/` = Memory management
+- `utils/` = Shared utilities (incl. memory compaction)
 - `utils/` = General utilities
 - `config/` = Configuration
 - `prompts/` = Agent instructions
@@ -607,7 +607,7 @@ analyzer.print_analysis(stats)
 4. Add to orchestrator workflow
 
 ### Adding New Memory Strategies
-1. Add to `history/` folder
+1. Add to `utils/` folder
 2. Implement compaction interface
 3. Update `BaseAgent` to use it
 
@@ -637,7 +637,7 @@ analyzer.print_analysis(stats)
 ## Related Documentation
 
 - **[INDEX.md](INDEX.md)** - Documentation entry point
-- **[COMPACTOR_DESIGN.md](COMPACTOR_DESIGN.md)** - Why compactor is in history/
+- **[COMPACTOR_DESIGN.md](COMPACTOR_DESIGN.md)** - Why compactor is in utils/
 - **[DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md)** - Core design philosophies
 - **[CONFIGURATION.md](CONFIGURATION.md)** - Complete configuration reference
 - **[DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md)** - Setup and contributing

@@ -31,7 +31,7 @@ This is your entry point for understanding and working with the multi-agent codi
 
 3. **[COMPACTOR_DESIGN.md](COMPACTOR_DESIGN.md)** - Memory Compaction Design
    - Why compactor exists
-   - Why it's in `history/` not `agents/`
+   - Why it's in `utils/` not `agents/`
    - How it works
    - When to use it
 
@@ -96,11 +96,8 @@ coding-agent/
 │   │   ├── file_operations.py    # File I/O operations
 │   │   └── orchestrator.py       # Workflow orchestration
 │   │
-│   ├── history/                   # Memory management
-│   │   ├── compactor.py          # History compaction
-│   │   └── __init__.py
-│   │
 │   ├── utils/                     # Utilities
+│   │   ├── history_compactor.py  # History compaction
 │   │   ├── helpers.py            # Helper functions
 │   │   ├── logger.py             # Logging system
 │   │   ├── sound.py              # Sound notifications

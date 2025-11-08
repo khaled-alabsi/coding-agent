@@ -1,0 +1,40 @@
+Create a modern, visually stunning personal website with the following detailed specifications:
+
+- **Framework & Technology**: React.js with TypeScript for type safety and component-based architecture, utilizing modern JavaScript ES6+ features
+- **Styling Approach**: Tailwind CSS with custom color palette implementation, responsive design principles, and CSS animations/transitions
+- **Design Requirements**: 
+  - Modern aesthetic with clean typography and ample white space
+  - Color scheme that reflects professional yet creative personality (suggest warm neutral tones with accent colors)
+  - Consistent design language throughout all sections
+  - Smooth animations and interactive elements (hover effects, scroll animations, transitions)
+- **Responsive Design**: Mobile-first approach ensuring perfect rendering on all device sizes (desktop, tablet, mobile) with breakpoint adjustments
+- **Core Sections**:
+  - Hero/Introduction section with animated text and call-to-action buttons
+  - About Me: Personal story, skills overview, and professional background with interactive elements
+  - Projects Portfolio: Grid layout showcasing work samples with filtering capabilities, project descriptions, and live demo links
+  - Blog/Articles: Content management system with categorized posts, search functionality, and reading time indicators
+  - Contact Form: Multi-field form with validation, submission handling, and contact information display
+- **Technical Features**:
+  - Smooth scrolling navigation with active section highlighting
+  - Dark/light mode toggle with localStorage persistence
+  - Performance optimization (code splitting, lazy loading, image optimization)
+  - SEO best practices with semantic HTML and meta tags
+  - Accessibility compliance (WCAG 2.1 standards, ARIA attributes)
+- **Interactive Elements**:
+  - Animated navigation menu with dropdowns
+  - Hover effects on cards and buttons
+  - Scroll-triggered animations for content elements
+  - Form validation with real-time feedback
+- **Performance Requirements**:
+  - Page load time under 2 seconds
+  - Mobile-friendly with touch-friendly interactions
+  - Optimized for fast rendering and smooth animations
+- **Deployment Considerations**:
+  - Production-ready build process with minification
+  - Hosting recommendations (Vercel/Netlify preferred)
+  - CDN integration for static assets
+- **User Experience**:
+  - Intuitive navigation structure with clear hierarchy
+  - Loading states and progress indicators
+  - Error handling for form submissions and API calls
+  - Responsive touch interactions for mobile users

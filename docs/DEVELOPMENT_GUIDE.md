@@ -117,11 +117,8 @@ coding-agent/
 │   ├── file_operations.py    # File I/O
 │   └── orchestrator.py       # Workflow coordination
 │
-├── history/                   # 💾 Memory management
-│   ├── compactor.py          # History summarization
-│   └── __init__.py
-│
-├── utils/                     # 🛠️ Utilities
+├── utils/                     # 🛠️ Utilities (incl. memory management)
+│   ├── history_compactor.py  # History summarization
 │   ├── helpers.py            # General helpers
 │   ├── logger.py             # Logging system
 │   ├── sound.py              # Audio notifications
