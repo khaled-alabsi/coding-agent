@@ -1,8 +1,9 @@
 """Base agent class with common functionality."""
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
 from ..config import AgentConfig
 from ..core import LLMClient
+from ..history import HistoryCompactor
 from ..utils import strip_thinking_tags
 
 
@@ -20,6 +21,7 @@ class BaseAgent(ABC):
         self.config = config
         self.llm_client = llm_client
         self.messages: List[Dict[str, str]] = []
+        self.history_compactor = HistoryCompactor(config, llm_client)
 
     @property
     @abstractmethod
@@ -48,6 +50,8 @@ class BaseAgent(ABC):
             "role": "user",
             "content": user_message
         })
+
+        self._compact_history_if_needed()
 
         if display:
             print(f"\n{'='*70}")
@@ -97,3 +101,17 @@ class BaseAgent(ABC):
             "role": "user",
             "content": context
         })
+        self._compact_history_if_needed()
+
+    def _compact_history_if_needed(self):
+        """Summarize older history if the context window is at risk."""
+        if not self.messages:
+            return
+
+        result = self.history_compactor.compact(
+            self.messages,
+            system_prompt=self.system_prompt,
+            context_window=self.config.context_window
+        )
+        if result.compacted:
+            self.messages = result.messages
