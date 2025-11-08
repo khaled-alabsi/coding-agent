@@ -221,3 +221,39 @@ azure_agent/output/*
 azure_agent/workflow_steps_*
 azure_agent/agent_log_*.json
 azure_agent/agent_history.json
+
+
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Agent history
+agent_history.json
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.log
+*.out
