@@ -187,6 +187,7 @@ Before marking the project as COMPLETE, you MUST:
    - [ ] Static files are being served correctly
    - [ ] Port is correctly configured
    - [ ] No missing dependencies or import errors
+   - [ ] Final implementation summary explicitly describes key files and directories (README, package.json, src structure, config files) so the validator has concrete info
 
 ## Example Testing Workflow
 

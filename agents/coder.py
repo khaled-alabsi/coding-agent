@@ -173,7 +173,6 @@ Start implementing now. Create all files as specified in the plan.""",
                 )
                 if planning_tools_used and self._tool_runner._phase == "preparation":
                     self._tool_runner.switch_to_implementation_phase()
-
                 results_message = self._format_action_results(action_results)
                 self.chat(results_message, display=False)
             else:
@@ -295,6 +294,12 @@ Start implementing now. Create all files as specified in the plan.""",
                 message=f"Parsed and executed {len(results)} actions"
             )
 
+        # always append summary
+        results.append({
+            "type": "summary",
+            "message": "Completed action batch",
+            "actions_executed": len(results)
+        })
         return results
 
     def _format_action_results(self, action_results: List[Dict[str, Any]]) -> str:
