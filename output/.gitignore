@@ -1,5 +1,0 @@
-# Ignore all files in output directory
-*
-
-# But track this .gitignore file
-!.gitignore
