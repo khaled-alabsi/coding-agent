@@ -72,10 +72,44 @@ READ_FILE: package.json
 
 ## VERIFICATION CHECKLIST (before COMPLETE)
 
-- [ ] All imports reference files that actually exist
-- [ ] CSS files contain actual styling code (not empty!)
-- [ ] package.json has all required dependencies
-- [ ] Build configs are complete and valid
-- [ ] README has clear installation and run instructions
+Before marking the project as COMPLETE, you MUST:
 
-Work through the plan systematically, creating all files as specified.
+1. **Create all files**
+   - [ ] All imports reference files that actually exist
+   - [ ] CSS files contain actual styling code (not empty!)
+   - [ ] package.json has all required dependencies
+   - [ ] Build configs are complete and valid
+   - [ ] README has clear installation and run instructions
+
+2. **Install dependencies and test**
+   - [ ] Run `npm install` (for Node.js projects) or `pip install -r requirements.txt` (for Python projects)
+   - [ ] Check for any installation errors and fix them
+   - [ ] Start the development server (e.g., `npm run dev`, `npm start`, `python app.py`)
+   - [ ] Test the server with `curl http://localhost:<port>` (replace <port> with actual port)
+   - [ ] Verify the server responds correctly (NOT "Cannot GET /")
+   - [ ] If there are errors (404, 500, route errors, etc.), fix them before completing
+   - [ ] Make sure all routes are properly configured and responding
+
+3. **Common Issues to Check**
+   - [ ] Server is configured to serve the correct files
+   - [ ] All routes are properly defined
+   - [ ] Static files are being served correctly
+   - [ ] Port is correctly configured
+   - [ ] No missing dependencies or import errors
+
+## Example Testing Workflow
+
+```
+BASH: npm install
+
+BASH: npm run dev &
+
+BASH: sleep 3 && curl http://localhost:5173
+
+# If you see "Cannot GET /", fix the routes or server configuration
+# Then test again until it works
+
+COMPLETE
+```
+
+Work through the plan systematically, creating all files as specified, then ALWAYS test the application before marking as COMPLETE.

@@ -60,15 +60,15 @@ def main():
     )
 
     parser.add_argument(
-        "--skip-prompt-enhancement",
+        "--enable-prompt-enhancement",
         action="store_true",
-        help="Skip prompt enhancement phase"
+        help="Enable prompt enhancement phase (disabled by default)"
     )
 
     parser.add_argument(
-        "--skip-plan-enhancement",
+        "--enable-plan-enhancement",
         action="store_true",
-        help="Skip plan enhancement phase"
+        help="Enable plan enhancement phase (disabled by default)"
     )
 
     args = parser.parse_args()
@@ -82,8 +82,8 @@ def main():
     run_args = {
         "use_local_llm": not args.azure,
         "local_model": args.model,
-        "skip_prompt_enhancement": args.skip_prompt_enhancement,
-        "skip_plan_enhancement": args.skip_plan_enhancement,
+        "skip_prompt_enhancement": not args.enable_prompt_enhancement,
+        "skip_plan_enhancement": not args.enable_plan_enhancement,
         "max_fix_iterations": args.max_fixes
     }
 
