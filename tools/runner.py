@@ -43,26 +43,38 @@ class ToolRunner:
         self.tools_dir = Path(tools_dir) if tools_dir else None
         self.agent_name = agent_name
         self._tool_counter = 0
-        self._planning_tools_enabled = True  # Can be disabled after planning phase
+        self._phase = "preparation"  # "preparation" or "implementation"
 
-        self._registry: Dict[str, ToolFunc] = {
+        # Define tools for each phase
+        self._preparation_tools: Dict[str, ToolFunc] = {
             "ENHANCE_PROMPT": enhance_prompt,
             "CREATE_PLAN": create_plan,
             "ENHANCE_PLAN": enhance_plan,
         }
 
+        self._implementation_tools: Dict[str, ToolFunc] = {
+            # No tools available during implementation - use BASH, WRITE_FILE, READ_FILE
+        }
+
+        # Current registry based on phase
+        self._registry = self._preparation_tools.copy()
+
     def set_tools_dir(self, tools_dir: Path) -> None:
         self.tools_dir = Path(tools_dir)
         self.tools_dir.mkdir(parents=True, exist_ok=True)
 
-    def disable_planning_tools(self) -> None:
-        """Disable ENHANCE_PROMPT, CREATE_PLAN, and ENHANCE_PLAN tools.
+    def switch_to_implementation_phase(self) -> None:
+        """Switch from preparation to implementation phase.
 
-        Call this after the planning phase is complete to prevent the Coder
-        from using these tools during implementation.
+        This completely removes planning tools (ENHANCE_PROMPT, CREATE_PLAN, ENHANCE_PLAN)
+        from the available tools. They will no longer be recognized or callable.
         """
-        self._planning_tools_enabled = False
-        print("🔒 Planning tools (ENHANCE_PROMPT, CREATE_PLAN, ENHANCE_PLAN) disabled")
+        if self._phase == "implementation":
+            return  # Already in implementation phase
+
+        self._phase = "implementation"
+        self._registry = self._implementation_tools.copy()
+        print("✓ Switched to IMPLEMENTATION phase - planning tools removed")
 
     def parse_calls(self, text: str) -> List[Tuple[str, str]]:
         matches = self.TOOL_PATTERN.findall(text)
@@ -81,14 +93,6 @@ class ToolRunner:
                 "input_len": len(tool_input),
             }
             try:
-                # Check if planning tools are disabled
-                if not self._planning_tools_enabled and tool_name in self._registry:
-                    raise ValueError(
-                        f"Tool {tool_name} is not available during implementation phase. "
-                        f"Planning tools (ENHANCE_PROMPT, CREATE_PLAN, ENHANCE_PLAN) can only be "
-                        f"used at the beginning. Focus on implementing with BASH, WRITE_FILE, and READ_FILE."
-                    )
-
                 func = self._registry.get(tool_name)
                 if not func:
                     raise ValueError(f"Unknown tool: {tool_name}")

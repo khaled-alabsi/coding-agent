@@ -74,6 +74,24 @@ python tests/test_logging.py
 - To verify new logging events are being captured
 - When debugging workflow issues
 
+### `test_phase_system.py`
+Tests the phase system that removes planning tools after preparation.
+
+**Usage**:
+```bash
+python tests/test_phase_system.py
+```
+
+**What it tests**:
+- Planning tools available in PREPARATION phase
+- Planning tools completely removed in IMPLEMENTATION phase
+- Phase switch is automatic and irreversible
+- Tools are properly rejected after phase switch
+
+**When to run**:
+- To verify planning tools are properly removed after use
+- When modifying the phase system or tool registry
+
 ## Running All Tests
 
 ```bash
@@ -88,6 +106,9 @@ python tests/test_file_operations.py
 
 # Test logging system (if logs appear incomplete)
 python tests/test_logging.py
+
+# Test phase system (verify tools are removed after preparation)
+python tests/test_phase_system.py
 ```
 
 ## Prerequisites
